@@ -1,4 +1,4 @@
-function complexity = theoretical_complexity(norm_xStep, norm_L, corrMod, kAdjust, periodMult)
+function [complexity, xNTot_Out, kNTot_Out] = theoretical_complexity(norm_xStep, norm_L, corrMod, kAdjust, periodMult)
 
 
 %Call Exemple:
@@ -53,4 +53,10 @@ end
 
 complexity = kNTotal * xNTotal * nDim; %When using DGEMM - O(N^3)
 
+if nargout>=2
+    xNTot_Out = xNTotal;
+end
+if nargout>=3
+    kNTot_Out = kNTotal;
+end
 end
