@@ -6,7 +6,7 @@ clc
 %USER
 corrMod = 'G'; %G for Gaussian
 nDim = 2; %Number of Dimensions
-L_Glob = 20; %Starts in 0 and is a square (corrL = 1)
+L_Glob = 4; %Starts in 0 and is a square (corrL = 1)
 Nmc = 1; %Number of events
 method = 'S'; %S for Shinozuka
 parallelLevel = 3; % >0, will define the number of processors (fake)
