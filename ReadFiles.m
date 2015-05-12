@@ -9,11 +9,12 @@ methodChar = 'S'; %'S' for Shinozuka, 'R' for Randomization, 'I' for Isotropic
 sep = '/'; % '/' for linux and Mac, '\' for Windows
 equalEdg = false; %Only plot domains where all the Dimensions are of the same size
 deformDomainSize = true;
-imposeSearchFolder = false;
-%imposeSearchFolder = true;
-searchFolder = 'WEAK'; %This argument will be ignored if "imposeSearchFolder = false"
+%imposeSearchFolder = false;
+imposeSearchFolder = true;
+%searchFolder = 'WEAK'; %This argument will be ignored if "imposeSearchFolder = false"
 %searchFolder = 'COMP';
-
+searchFolder = 'GOOD_RESULTS_BACKUP/COMP';
+lWidth = 3;
 %---------------------------------
 
 % CONSTANTS AND INITIALIZATION
@@ -75,9 +76,11 @@ end
 
 %% READING FILES
 
+
+%cd(['GOOD_RESULTS_BACKUP/',searchFolder])
 cd([searchFolder])
 pathList = subdir(fileName); %Gives all the paths that have a singleGen file
-cd(['..'])
+cd('/mssmat2/home/paludo/Desktop/RF_Matlab');
 vecSize = size(pathList,1);
 
     %     dim_xMin  = zeros(nDim, nIter);
@@ -290,8 +293,8 @@ for dim = 1:3
             yVec2 = yVec2/yVec2(1);
             
             %Ploting
-            plot(xVec, yVec, '--^', 'MarkerSize',10);
-            plot(xVec, yVec2, '-');
+            plot(xVec, yVec, '--^', 'MarkerSize',10, 'LineWidth', lWidth);
+            plot(xVec, yVec2, '-', 'LineWidth', lWidth);
             xlabel('(L/l_c)^d', 'FontSize', 20);
             ylabel('CPU Time', 'FontSize', 20) 
             
@@ -325,7 +328,7 @@ for dim = 1:3
             %yVec2 = yVec2/yVec2(1);
             
             %Ploting
-            plot(xVec, yVec, '--^', 'MarkerSize',10);
+            plot(xVec, yVec, '--^', 'MarkerSize',10, 'LineWidth', lWidth);
             %plot(xVec, yVec2, '-');
             xlabel('Number of processors', 'FontSize', 20);
             ylabel('CPU Time / Number of processors', 'FontSize', 20) 
@@ -346,15 +349,15 @@ if(testType == 'W')
     yLim([0.1, limV(2)]);
     %axis([0 inf 0.1 1000])
     limH = xLim;
-    plot([1, limH(2)], [1,1]);
+    plot([1, limH(2)], [1,1], 'LineWidth', lWidth);
     legendInfo{4} = ['Reference'];
 end
 
 grid('on')
 box('on')
 set(gca,'xscale','log')
-set(gca,'yscale','log')
-legend(legendInfo,'Location','southeast')
+set(gca,'yscale','log', 'FontSize',15)
+legend(legendInfo,'Location','southeast','FontSize',15)
 
 saveas(fig,[testTypeBN, '_', methodBN,'_L'],'epsc');
 
