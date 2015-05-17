@@ -3,7 +3,7 @@ clear
 close all
 
 %% USER
-testType = 'C'; %'C' for Complexity, 'W' for Weak Scaling, 'S' for Strong Scaling
+testType = 'W'; %'C' for Complexity, 'W' for Weak Scaling, 'S' for Strong Scaling
 %nDim = 2;
 methodChar = 'S'; %'S' for Shinozuka, 'R' for Randomization, 'I' for Isotropic
 sep = '/'; % '/' for linux and Mac, '\' for Windows
@@ -11,9 +11,9 @@ equalEdg = false; %Only plot domains where all the Dimensions are of the same si
 deformDomainSize = true;
 %imposeSearchFolder = false;
 imposeSearchFolder = true;
-%searchFolder = 'WEAK'; %This argument will be ignored if "imposeSearchFolder = false"
+searchFolder = 'WEAK'; %This argument will be ignored if "imposeSearchFolder = false"
 %searchFolder = 'COMP';
-searchFolder = 'GOOD_RESULTS_BACKUP/COMP';
+%searchFolder = 'GOOD_RESULTS_BACKUP/COMP';
 lWidth = 3;
 %---------------------------------
 
@@ -307,9 +307,12 @@ for dim = 1:3
             %legendInfo{2*dim}   = [dimText, ' theoretical'];
     
             %Filtering
-            xVec = nb_procs(nDim == dim & methodNbVec == methodNb);            
-            yVec = time(nDim == dim & methodNbVec == methodNb)./xVec;
-            %yVec2 = complexity(nDim == dim & methodNbVec == methodNb)./xVec;
+            xVec = nb_procs(nDim == dim & methodNbVec == methodNb);
+            %TEST
+            !nProcTemp = kNTotal_Loc(nDim == dim & methodNbVec == methodNb);
+            yVec = time(nDim == dim & methodNbVec == methodNb)./(xVec.^(3/2));
+            %END TEST
+            %yVec = time(nDim == dim & methodNbVec == methodNb)./(xVec);
             
             %Ordering
             [xVec,I]=sort(xVec);
@@ -317,7 +320,7 @@ for dim = 1:3
             %yVec2 = yVec2(I);
             
             %Lower Bound For Plotting
-            lBoundPlot = [2, 2, 2];
+            lBoundPlot = [1, 4, 3];
             xVec = xVec(lBoundPlot(dim):end);
             yVec = yVec(lBoundPlot(dim):end);
             %yVec2 = yVec2(lBoundPlot(dim):end);
