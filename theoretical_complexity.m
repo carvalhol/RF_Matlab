@@ -47,8 +47,13 @@ switch corrModChar
 end
 
 for i = 1:nDim
+    %Rounding
     kNTotal = kNTotal * (1 + kAdjust*(ceil(periodMult*norm_L(i)*kMax/(2*pi))));
     xNTotal = xNTotal * (1 + floor(norm_L(i)/norm_xStep(i)));
+    
+    %Not Rounding
+    %kNTotal = kNTotal * (1 + kAdjust*(periodMult*norm_L(i)*kMax/(2*pi)));
+    %xNTotal = xNTotal * (1 + norm_L(i)/norm_xStep(i));
 end
 
 complexity = kNTotal * xNTotal * nDim; %When using DGEMM - O(N^3)

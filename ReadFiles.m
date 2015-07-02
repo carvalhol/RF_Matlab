@@ -3,14 +3,14 @@ clear
 close all
 
 %% USER
-testType = 'W'; %'C' for Complexity, 'W' for Weak Scaling, 'S' for Strong Scaling
+testType = 'C'; %'C' for Complexity, 'W' for Weak Scaling, 'S' for Strong Scaling
 %nDim = 2;
 methodChar = 'S'; %'S' for Shinozuka, 'R' for Randomization, 'I' for Isotropic
 sep = '/'; % '/' for linux and Mac, '\' for Windows
 equalEdg = false; %Only plot domains where all the Dimensions are of the same size
 deformDomainSize = true;
 %imposeSearchFolder = false;
-imposeSearchFolder = true;
+imposeSearchFolder = false;
 searchFolder = 'WEAK'; %This argument will be ignored if "imposeSearchFolder = false"
 %searchFolder = 'COMP';
 %searchFolder = 'GOOD_RESULTS_BACKUP/COMP';
@@ -234,6 +234,7 @@ nTerms = sum_xNTotal.* (sum_kNTotal./nb_procs);
 for i = 1:size(xMax,1)
     complexity(i) = theoretical_complexity(xStep{i}, (xMax{i}-xMin{i})./corrL{i}, corrMod{i}, kAdjust, periodMult);
 end
+
 %Creating methodNb Vector
 methodNbVec = zeros(size(method,1),1);
 for i = 1:size(methodNbVec,1)
@@ -278,10 +279,10 @@ for dim = 1:3
             %Lower Bound For Plotting
             lBoundPlot = [1, 1, 1];
             if(methodChar == 'S')
-                lBoundPlot = [8, 5, 2];
+                lBoundPlot = [8, 6, 2];
             end
             if(methodChar == 'R')
-                lBoundPlot = [7, 5, 1];
+                lBoundPlot = [1, 1, 1];
             end
             xVec = xVec(lBoundPlot(dim):end);
             yVec = yVec(lBoundPlot(dim):end);
@@ -308,11 +309,7 @@ for dim = 1:3
     
             %Filtering
             xVec = nb_procs(nDim == dim & methodNbVec == methodNb);
-            %TEST
-            !nProcTemp = kNTotal_Loc(nDim == dim & methodNbVec == methodNb);
-            yVec = time(nDim == dim & methodNbVec == methodNb)./(xVec.^(3/2));
-            %END TEST
-            %yVec = time(nDim == dim & methodNbVec == methodNb)./(xVec);
+            yVec = time(nDim == dim & methodNbVec == methodNb)./(xVec);
             
             %Ordering
             [xVec,I]=sort(xVec);
@@ -320,7 +317,7 @@ for dim = 1:3
             %yVec2 = yVec2(I);
             
             %Lower Bound For Plotting
-            lBoundPlot = [1, 4, 3];
+            lBoundPlot = [1, 1, 1];
             xVec = xVec(lBoundPlot(dim):end);
             yVec = yVec(lBoundPlot(dim):end);
             %yVec2 = yVec2(lBoundPlot(dim):end);
@@ -350,6 +347,7 @@ if(testType == 'W')
     limV = yLim;
     xLim([0, limH(2)]);
     yLim([0.1, limV(2)]);
+    %yLim([0.1, 10]);
     %axis([0 inf 0.1 1000])
     limH = xLim;
     plot([1, limH(2)], [1,1], 'LineWidth', lWidth);
