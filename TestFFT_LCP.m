@@ -52,7 +52,7 @@ close all
 
 %% FFT 3D
 
-Lmax = 0.1;
+Lmax = 8;
 
 x = 0:0.1:Lmax;
 y = 0:0.1:Lmax;
@@ -74,58 +74,58 @@ for i = 1 : nIter
 end
 
 %% Results plot
-% 
-% xMinPlot = 1;
-% yMinPlot = 1;
-% zMinPlot = 1;
-% % xLimPlot = 20;
-% % yLimPlot = 20;
-% % zLimPlot = 20;
-% xLimPlot = 10000;
-% yLimPlot = 10000;
-% zLimPlot = 10000;
-% xStepPlot = 3;
-% yStepPlot = 3;
-% zStepPlot = 3;
-% 
-% if(xLimPlot > numel(x))
-%     xLimPlot = numel(x);
-% end
-% if(yLimPlot > numel(y))
-%     yLimPlot = numel(y);
-% end
-% if(zLimPlot > numel(z))
-%     zLimPlot = numel(z);
-% end
-% if(xMinPlot < 1)
-%     xMinPlot = 1;
-% end
-% if(yMinPlot < 1)
-%     yMinPlot = 1;
-% end
-% if(zMinPlot < 1)
-%     zMinPlot = 1;
-% end
-% %uV = u(xMin:xLim, yMin:yLim, zMin:zLim);
-% % [xV,yV,zV] = meshgrid(x(xMin:xLim),y(yMin:yLim),z(zMin:zLim));
-% 
-% [xV,yV,zV] = meshgrid(...
-%              x(xMinPlot:xStepPlot:xLimPlot),...
-%              y(yMinPlot:yStepPlot:yLimPlot),...
-%              z(zMinPlot:zStepPlot:zLimPlot));
-% 
-% uV = u(...
-%     xMinPlot:xStepPlot:xLimPlot,...
-%     yMinPlot:yStepPlot:yLimPlot,...
-%     zMinPlot:zStepPlot:zLimPlot);
-% 
-% % xV = xV();
-% % yV = yV();
-% % zV = zV;
-% 
-% A = figure(1);
-% %set(A, 'render', 'zbuffer')
-% scatter3(xV(:), yV(:), zV(:), 5,uV(:))
-% 
-% std(u(:))
-% mean(u(:))
+
+xMinPlot = 1;
+yMinPlot = 1;
+zMinPlot = 1;
+% xLimPlot = 20;
+% yLimPlot = 20;
+% zLimPlot = 20;
+xLimPlot = 10000;
+yLimPlot = 10000;
+zLimPlot = 10000;
+xStepPlot = 3;
+yStepPlot = 3;
+zStepPlot = 3;
+
+if(xLimPlot > numel(x))
+    xLimPlot = numel(x);
+end
+if(yLimPlot > numel(y))
+    yLimPlot = numel(y);
+end
+if(zLimPlot > numel(z))
+    zLimPlot = numel(z);
+end
+if(xMinPlot < 1)
+    xMinPlot = 1;
+end
+if(yMinPlot < 1)
+    yMinPlot = 1;
+end
+if(zMinPlot < 1)
+    zMinPlot = 1;
+end
+%uV = u(xMin:xLim, yMin:yLim, zMin:zLim);
+% [xV,yV,zV] = meshgrid(x(xMin:xLim),y(yMin:yLim),z(zMin:zLim));
+
+[xV,yV,zV] = meshgrid(...
+             x(xMinPlot:xStepPlot:xLimPlot),...
+             y(yMinPlot:yStepPlot:yLimPlot),...
+             z(zMinPlot:zStepPlot:zLimPlot));
+
+uV = u(...
+    xMinPlot:xStepPlot:xLimPlot,...
+    yMinPlot:yStepPlot:yLimPlot,...
+    zMinPlot:zStepPlot:zLimPlot);
+
+% xV = xV();
+% yV = yV();
+% zV = zV;
+
+A = figure(1);
+%set(A, 'render', 'zbuffer')
+scatter3(xV(:), yV(:), zV(:), 5,uV(:))
+
+std(u(:))
+mean(u(:))

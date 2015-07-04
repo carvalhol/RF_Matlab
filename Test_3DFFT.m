@@ -33,7 +33,7 @@ Sk = repmat( Sk, [1 1 Nz]) .* ...
      [1 1 Nz]), [Nx Ny 1]);
  
  %Phase and amplitudes
-Dk     = gammak.*sqrt(Sk).*exp(complex(0,1)*2*pi*phik);
+Dk     = gammak.*sqrt(Sk).*exp(2*pi*phik);
 
  
  %START New Spectrum Organization
@@ -67,8 +67,6 @@ Dk     = gammak.*sqrt(Sk).*exp(complex(0,1)*2*pi*phik);
  %END New Spectrum Organization
 
 % %Field computation
-YB
-
 
 Y = ifft( ifft( ifft( Dk, [], 3, 'symmetric' ), ... 
     [], 2, 'symmetric' ), ... 
