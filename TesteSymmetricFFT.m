@@ -81,11 +81,11 @@
 % B = ifft( A, [], 1, 'symmetric' )
 % Bplus = ifft( Aplus, [], 1)
 
-%% Regis
+%% Regis 1D
 
-clc
-clear all
-close all
+% clc
+% clear all
+% close all
 
 % %Original vector
 % Ainit = [zeros(685,1); sin((0:1:628)'/100); zeros(686,1)];
@@ -101,6 +101,61 @@ close all
 % B = ifft( A, [], 1, 'symmetric' );
 % Bplus = ifft( Aplus(1:end-1), [], 1);
 % figure; plot(1:N,B,'b-x',1:N-1,real(Bplus),'r-x');
+
+%% Regis 2D
+
+clc
+clear all
+close all
+
+%Original matrix
+Ainit = [zeros(685,1); sin((0:1:628)'/100); zeros(686,1)];
+N = length(Ainit);
+Ainit = Ainit*Ainit';
+A = fft2(Ainit, N, N);
+
+%Modified Vector
+Nhalf = floor(N/2)+1;
+Ahalf = A(1:Nhalf, 1:Nhalf);
+
+%Copy
+Aplus = [Ahalf, Ahalf(:,2:end-1); ...
+         Ahalf(2:end-1,:), Ahalf(2:end-1,2:end-1)];
+     
+%Hermitian Conjugate
+Aplus(Nhalf+1:end, :) = -conj(flipud(Aplus(Nhalf+1:end, :)));
+Aplus(:, Nhalf+1:end) = -conj(fliplr(Aplus(:, Nhalf+1:end)));
+ 
+%iFFTs
+%B = ifft(A);
+Bsym = ifft2( A, 'symmetric' );
+Bplus = ifft2( Aplus);
+
+figure; surf(Bsym); shading flat; view(2); colorbar; title('B sym')
+figure; surf(real(Bplus)); shading flat; view(2); colorbar; title('B+')
+% 
+% %Original matrix
+% N = 100;
+% Ainit = [zeros(N-1,1); sin((0:N)'*2*pi/N); zeros(N,1)];
+% N = length(Ainit);
+% Ainit = Ainit*Ainit';
+% figure; surf(Ainit); shading flat; view(2); colorbar; title('A')
+% A = fft2(Ainit);
+% 
+% %Modified Vector
+% Nhalf = floor(N/2)+1;
+% 
+% %Copy
+% Aplus = A;
+% Aplus( Nhalf+1:end, 2:Nhalf ) = -conj(flipud(A( 2:Nhalf-1, 2:Nhalf )));
+% Aplus( 2:Nhalf, Nhalf+1:end ) = -conj(fliplr(A( 2:Nhalf, 2:Nhalf-1 )));
+% Aplus( Nhalf+1:end, Nhalf+1:end ) = rot90(A( 2:Nhalf-1, 2:Nhalf-1 ),2);
+% 
+% %iFFTs
+% Bsym = ifft2( A, 'symmetric' );
+% figure; surf(Bsym); shading flat; view(2); colorbar; title('B sym')
+% Bplus = ifft2(Aplus);
+% figure; surf(real(Bplus)); shading flat; view(2); colorbar; title('B+')
 
 
 
