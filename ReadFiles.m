@@ -4,11 +4,13 @@ close all
 
 %% USER
 testType = 'W'; %'C' for Complexity, 'W' for Weak Scaling, 'S' for Strong Scaling
-methodChar = {'S', 'Si'}; %'S' for Shinozuka, 'R' for Randomization, 'I' for Isotropic, put aditional i for independent
+%methodChar = {'S','R','I'}; %'S' for Shinozuka, 'R' for Randomization, 'I' for Isotropic, put aditional i for independent
+methodChar = {'S','Si'}
 dims       = [3];
 
 %searchFolder = 'WEAK'; %This argument will be ignored if "imposeSearchFolder = false"
-searchFolder = 'Current';
+%searchFolder = 'Current';
+searchFolder = 'NEWEST_BACKUP';
 %searchFolder = 'GOOD_RESULTS_BACKUP';
 
 %---------------------------------
@@ -24,6 +26,9 @@ kAdjust = 1;
 periodMult = 1.1;
 fileName = 'singleGen';
 resultsFolder = 'results';
+
+linestyles = cellstr(char('-',':','-.','--','-',':','-.','--','-',':','-',':',...
+'-.','--','-',':','-.','--','-',':','-.'));
 
 %Allocation
 methodText = cell(nMethods,1);
@@ -365,13 +370,14 @@ switch testType
         legendInfo{end} = 'Reference';
         plot(xVec, ones(length(xVec),1), '-', 'MarkerSize',10, 'LineWidth', lWidth);
         ylim([0.1 100])
+        xlim([1 max(xVec)])
 end
 
 grid('on')
 box('on')
 set(gca,'xscale','log')
 set(gca,'yscale','log', 'FontSize',15)
-legend(legendInfo(legendMask),'Location','southeast','FontSize',15)
+legend(legendInfo(legendMask),'Location','northwest','FontSize',15)
 % 
 % saveas(fig,[testTypeBN, '_', methodBN,'_L'],'epsc');
 
