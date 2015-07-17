@@ -54,7 +54,7 @@ Sk = repmat( Sk, [1 1 Nz]) .* ...
 % end
 
 %Phase and amplitudes
-Dk     = gammak.*sqrt(Sk).*exp(complex(0,1)*2*pi*phik);
+Dk     = gammak.*sqrt(Sk).*exp(2*pi*phik);
 % DkPlus = cat(3, ...
 %     cat(2, ...
 %     cat(1,flip(Dk,[1,1,1]), flip(Dk,[0,1,1])), ...
@@ -89,9 +89,42 @@ Dk     = gammak.*sqrt(Sk).*exp(complex(0,1)*2*pi*phik);
 
 % %Field computation
 
-Y = ifft( ifft( ifft( Dk, [], 3, 'symmetric' ), ... 
-    [], 2, 'symmetric' ), ... 
-    [], 1, 'symmetric' ); 
+% Y = ifft( ifft( ifft( Dk, [], 3, 'symmetric' ), ... 
+%     [], 2, 'symmetric' ), ... 
+%     [], 1, 'symmetric' ); 
+
+N = [Nx, Ny, Nz];
+
+Nhalf = floor(N/2)+1;
+Dkhalf = Dk(1:Nhalf(1), 1:Nhalf(2), 1:Nhalf(3));
+
+%Copy
+Dkplus = cat(1,...
+        cat(2, Dkhalf, Dkhalf(:,2:end-1,:)), ...
+        cat(2, Dkhalf(2:end-1,:,:), Dkhalf(2:end-1,2:end-1,:))...
+        );
+         
+Dkplus = cat(3, Dkplus, Dkplus(:,:,2:end-1));
+
+%Hermitian Conjugate
+Dkplus(Nhalf+1:end, :,:) = -conj(flipdim(Dkplus(Nhalf+1:end, :,:),1));
+Dkplus(:, Nhalf+1:end,:) = -conj(flipdim(Dkplus(:, Nhalf+1:end,:),2));
+Dkplus(:,:, Nhalf+1:end) = -conj(flipdim(Dkplus(:,:, Nhalf+1:end),3));
+
+%Field Generation
+
+% Y = ifft( ifft( ifft( Dk, [], 3, 'symmetric' ), ... 
+%     [], 2, 'symmetric' ), ... 
+%     [], 1, 'symmetric' ); 
+
+%Y = ifftn(Dk, [],'symmetric' ); 
+
+
+%START Test Without Symmetric
+Y = real(ifftn(Dk)); 
+%END Test Without Symmetric
+
+%Normalization
 Y = Y(1:Nx/2, 1:Ny/2, 1:Nz/2) ...
     * sqrt(2*pi/Lx)*Nx ... 
     * sqrt(2*pi/Ly)*Ny ... 

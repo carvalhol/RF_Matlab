@@ -52,7 +52,7 @@ close all
 
 %% FFT 3D
 
-Lmax = 8;
+Lmax = 4;
 
 x = 0:0.1:Lmax;
 y = 0:0.1:Lmax;

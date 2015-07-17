@@ -5,12 +5,17 @@ close all
 %% USER
 testType = 'W'; %'C' for Complexity, 'W' for Weak Scaling, 'S' for Strong Scaling
 %methodChar = {'S','R','I'}; %'S' for Shinozuka, 'R' for Randomization, 'I' for Isotropic, put aditional i for independent
-methodChar = {'S','Si'}
+%methodChar = {'S','Si'};
 dims       = [3];
 
-%searchFolder = 'WEAK'; %This argument will be ignored if "imposeSearchFolder = false"
-%searchFolder = 'Current';
-searchFolder = 'NEWEST_BACKUP';
+methodChar = {'S', 'Si', 'R', 'Ri', 'I','Ii'};
+searchFolder = 'Current/WEAK_Test/NEW';
+
+% methodChar = {'S','R','I'}
+% searchFolder = 'Current';
+% methodChar = {'I','Ii'};
+% searchFolder = 'Current/ISO_Test';
+%searchFolder = 'NEWEST_BACKUP';
 %searchFolder = 'GOOD_RESULTS_BACKUP';
 
 %---------------------------------
