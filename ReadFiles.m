@@ -3,13 +3,19 @@ clear
 close all
 
 %% USER
+baseFolder = '/home/lcp/Desktop/RF_Matlab';
+% baseFolder = '/mssmat2/home/paludo/Desktop/RF_Matlab';
+
 testType = 'W'; %'C' for Complexity, 'W' for Weak Scaling, 'S' for Strong Scaling
 %methodChar = {'S','R','I'}; %'S' for Shinozuka, 'R' for Randomization, 'I' for Isotropic, put aditional i for independent
 %methodChar = {'S','Si'};
 dims       = [3];
 
-methodChar = {'S', 'Si', 'R', 'Ri', 'I','Ii'};
-searchFolder = 'Current/WEAK_Test/NEW';
+% methodChar = {'S', 'Si', 'R', 'Ri', 'I','Ii'};
+% searchFolder = 'Current/WEAK_Test/NEW';
+
+methodChar = {'S', 'Si', 'R', 'Ri'};
+searchFolder = 'little_WEAK';
 
 % methodChar = {'S','R','I'}
 % searchFolder = 'Current';
@@ -67,7 +73,7 @@ testTypeBN{WEAK} = 'Weak Scaling';
 
 cd([searchFolder])
 pathList = subdir(fileName); %Gives all the paths that have a singleGen file
-cd('/mssmat2/home/paludo/Desktop/RF_Matlab');
+cd(baseFolder);
 vecSize = size(pathList,1);
 
 %Allocation
@@ -374,7 +380,7 @@ switch testType
     case 'W'
         legendInfo{end} = 'Reference';
         plot(xVec, ones(length(xVec),1), '-', 'MarkerSize',10, 'LineWidth', lWidth);
-        ylim([0.1 100])
+        ylim([0.1 1000])
         xlim([1 max(xVec)])
 end
 

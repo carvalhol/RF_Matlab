@@ -1,0 +1,2 @@
+rsync -avz --exclude="log*" --exclude="*.h5" carvalhol@igloo.ecp.fr:/workdir/carvalhol/RF_Test/little_WEAK ./
+
