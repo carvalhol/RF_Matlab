@@ -1,0 +1,18 @@
+ $$nDim            3
+ $$Nmc            1
+ $$corrMod gaussian       
+ $$margiFirst lognormal      
+ $corrL 
+   1.00000000000000        1.00000000000000        1.00000000000000     
+ $$fieldAvg 
+  0.500000000000000     
+ $$fieldVar 
+   1.00000000000000     
+ $$method 
+           1
+ $$seedStart
+           0
+ $$independent
+           1
+ $$overlap
+   3.00000000000000     

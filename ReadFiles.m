@@ -15,7 +15,7 @@ dims       = [3];
 % searchFolder = 'Current/WEAK_Test/NEW';
 
 methodChar = {'S', 'Si', 'R', 'Ri'};
-searchFolder = 'little_WEAK';
+searchFolder = 'WEAK_512';
 
 % methodChar = {'S','R','I'}
 % searchFolder = 'Current';
