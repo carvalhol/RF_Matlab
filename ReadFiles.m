@@ -3,8 +3,8 @@ clear
 close all
 
 %% USER
-baseFolder = '/home/lcp/Desktop/RF_Matlab';
-% baseFolder = '/mssmat2/home/paludo/Desktop/RF_Matlab';
+% baseFolder = '/home/lcp/Desktop/RF_Matlab';
+baseFolder = '/mssmat2/home/paludo/Desktop/RF_Matlab';
 
 testType = 'W'; %'C' for Complexity, 'W' for Weak Scaling, 'S' for Strong Scaling
 %methodChar = {'S','R','I'}; %'S' for Shinozuka, 'R' for Randomization, 'I' for Isotropic, put aditional i for independent
@@ -14,7 +14,8 @@ dims       = [3];
 % methodChar = {'S', 'Si', 'R', 'Ri', 'I','Ii'};
 % searchFolder = 'Current/WEAK_Test/NEW';
 
-methodChar = {'S', 'Si', 'R', 'Ri'};
+methodChar = {'S', 'R', 'I'};
+%methodChar = {'S', 'Si'};
 searchFolder = 'WEAK_512';
 
 % methodChar = {'S','R','I'}
