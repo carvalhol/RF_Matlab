@@ -52,7 +52,7 @@ close all
 
 %% FFT 3D
 
-Lmax = 4;
+Lmax = 2;
 
 x = 0:0.1:Lmax;
 y = 0:0.1:Lmax;
@@ -62,9 +62,9 @@ corrModx = corrMod;
 corrMody = corrMod;
 corrModz = corrMod;
 delta = 0.01;
-Lx = 1;
-Ly = 1;
-Lz = 1;
+Lx = 2;
+Ly = 2;
+Lz = 2;
 
 nIter = 1;
 
@@ -127,5 +127,5 @@ A = figure(1);
 %set(A, 'render', 'zbuffer')
 scatter3(xV(:), yV(:), zV(:), 5,uV(:))
 
-std(u(:))
-mean(u(:))
+std(u(:));
+mean(u(:));

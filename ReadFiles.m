@@ -11,12 +11,14 @@ testType = 'W'; %'C' for Complexity, 'W' for Weak Scaling, 'S' for Strong Scalin
 %methodChar = {'S','Si'};
 dims       = [3];
 
-% methodChar = {'S', 'Si', 'R', 'Ri', 'I','Ii'};
-% searchFolder = 'Current/WEAK_Test/NEW';
+%methodChar = {'S', 'Si', 'R', 'Ri', 'I','Ii'};
+%searchFolder = 'Current/WEAK_Test/NEW';
 
-methodChar = {'S', 'R', 'I'};
-%methodChar = {'S', 'Si'};
-searchFolder = 'WEAK_512';
+methodChar = {'S', 'Si', 'R', 'Ri'};
+searchFolder = 'Occigen/AutoTest';
+
+% methodChar = {'S', 'R', 'I'};
+% searchFolder = 'WEAK_512';
 
 % methodChar = {'S','R','I'}
 % searchFolder = 'Current';
