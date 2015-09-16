@@ -37,43 +37,51 @@ mk3 = mk3/nSamples;
 
 rL=N/A;
 lL=N/A+N+1;
+fSize = 10;
+lWeight = 2;
 
 F1=figure; clf
 set(F1,'defaulttextinterpreter','latex')
 subplot(3,4,1:2)
-plot(k1,'b', 'LineWidth',2);
-title('$$Delta$$','interpreter','latex')
+plot(k1,'b', 'LineWidth',lWeight);
+title('$$\Delta$$','interpreter','latex')
 ylim([-3,3]);
 line([rL rL],ylim,'Color','k')
 line([lL lL],ylim,'Color','k')
+h=legend('S1', 'Location', 'southeast');
+set(h,'interpreter','latex','fontsize',fSize)
 
 subplot(3,4,3:4)
-plot(k2,'r', 'LineWidth',2);
+plot(k2,'r', 'LineWidth',lWeight);
 title('Sample 2')
 ylim([-3,3]);
 line([rL rL],ylim,'Color','k')
 line([lL lL],ylim,'Color','k')
+h=legend('S2', 'Location', 'southeast');
+set(h,'interpreter','latex','fontsize',fSize)
 
 subplot(3,4,5:6)
 hold on
-plot(unitPar1,'m', 'LineWidth',2);
+plot(unitPar1,'m', 'LineWidth',lWeight);
 plot(k1,'b--');
-plot(unitPar1.*k1,'b', 'LineWidth',2);
+plot(unitPar1.*k1,'b', 'LineWidth',lWeight);
 ylim([-3,3]);
 line([rL rL],ylim,'Color','k')
 line([lL lL],ylim,'Color','k')
-legend('\sqrt(2)Partition of Unity', 'Location', 'southeast')
+h=legend('$$\Psi_1$$','S1', 'S1 x ($$\Psi_1$$)', 'Location', 'southeast');
+set(h,'interpreter','latex','fontsize',fSize)
 hold off
 
 subplot(3,4,7:8)
 hold on
-plot(unitPar2,'g', 'LineWidth',2);
+plot(unitPar2,'g', 'LineWidth',lWeight);
 plot(k2,'r--');
-plot(unitPar2.*k2, 'r', 'LineWidth',2);
+plot(unitPar2.*k2, 'r', 'LineWidth',lWeight);
 ylim([-3,3]);
 line([rL rL],ylim,'Color','k')
 line([lL lL],ylim,'Color','k')
-legend('Partition of Unity', 'Location', 'southeast')
+h=legend('$$\Psi_2$$','S2', 'S2 x ($$\Psi_2$$)', 'Location', 'southeast');
+set(h,'interpreter','latex','fontsize',fSize)
 hold off
 
 subplot(3,4,10:11)
@@ -81,8 +89,10 @@ hold on
 plot(unitPar1.*k1,'b--');
 title('Resultant Sample')
 plot(unitPar2.*k2,'r--');
-plot(unitPar1.*k1+unitPar2.*k2,'k', 'LineWidth',2);
+plot(unitPar1.*k1+unitPar2.*k2,'k', 'LineWidth',lWeight);
 ylim([-3,3]);
 line([rL rL],ylim,'Color','k')
 line([lL lL],ylim,'Color','k')
+h=legend('S1 x ($$\Psi_1$$) + S2 x ($$\Psi_2$$)','S1 x ($$\Psi_1$$)','S2 x ($$\Psi_2$$)', 'Location', 'southeast');
+set(h,'interpreter','latex','fontsize',fSize)
 hold off
