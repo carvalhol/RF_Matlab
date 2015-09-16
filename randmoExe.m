@@ -38,10 +38,11 @@ mk3 = mk3/nSamples;
 rL=N/A;
 lL=N/A+N+1;
 
-figure
+F1=figure; clf
+set(F1,'defaulttextinterpreter','latex')
 subplot(3,4,1:2)
 plot(k1,'b', 'LineWidth',2);
-title('Sample 1')
+title('$$Delta$$','interpreter','latex')
 ylim([-3,3]);
 line([rL rL],ylim,'Color','k')
 line([lL lL],ylim,'Color','k')
@@ -55,18 +56,18 @@ line([lL lL],ylim,'Color','k')
 
 subplot(3,4,5:6)
 hold on
-plot(unitPar1,'m+');
+plot(unitPar1,'m', 'LineWidth',2);
 plot(k1,'b--');
 plot(unitPar1.*k1,'b', 'LineWidth',2);
 ylim([-3,3]);
 line([rL rL],ylim,'Color','k')
 line([lL lL],ylim,'Color','k')
-legend('Partition of Unity', 'Location', 'southeast')
+legend('\sqrt(2)Partition of Unity', 'Location', 'southeast')
 hold off
 
 subplot(3,4,7:8)
 hold on
-plot(unitPar2,'g+');
+plot(unitPar2,'g', 'LineWidth',2);
 plot(k2,'r--');
 plot(unitPar2.*k2, 'r', 'LineWidth',2);
 ylim([-3,3]);
