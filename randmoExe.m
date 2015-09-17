@@ -49,7 +49,7 @@ t=title('$$S1$$');
 ylim([-3,3]);
 line([rL rL],ylim,'Color','k')
 line([lL lL],ylim,'Color','k')
-h=legend('S1', 'Location', 'southeast');
+h=legend('$$S1$$', 'Location', 'southeast');
 set(h,'interpreter','latex','fontsize',fSize)
 set(t,'interpreter','latex','fontsize',fSize2)
 
@@ -59,7 +59,7 @@ t=title('$$S2$$');
 ylim([-3,3]);
 line([rL rL],ylim,'Color','k')
 line([lL lL],ylim,'Color','k')
-h=legend('S2', 'Location', 'southeast');
+h=legend('$$S2$$', 'Location', 'southeast');
 set(h,'interpreter','latex','fontsize',fSize)
 set(t,'interpreter','latex','fontsize',fSize2)
 
@@ -72,7 +72,7 @@ plot(unitPar1.*k1,'b', 'LineWidth',lWeight);
 ylim([-3,3]);
 line([rL rL],ylim,'Color','k')
 line([lL lL],ylim,'Color','k')
-h=legend('$$\sqrt{\Psi_1}$$','S1', '$$S1_{modif}$$', 'Location', 'southeast');
+h=legend('$$\sqrt{\Psi_1}$$','$$S1$$', '$$S1_{modif}$$', 'Location', 'southeast');
 set(h,'interpreter','latex','fontsize',fSize)
 set(t,'interpreter','latex','fontsize',fSize2)
 hold off
