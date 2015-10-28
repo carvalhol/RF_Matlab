@@ -3,19 +3,22 @@ clear
 close all
 
 %% USER
-% baseFolder = '/home/lcp/Desktop/RF_Matlab';
-baseFolder = '/mssmat2/home/paludo/Desktop/RF_Matlab';
+%baseFolder = '/home/lcp/Desktop/RF_Matlab';
+%baseFolder = '/mssmat2/home/paludo/Desktop/RF_Matlab';
+baseFolder = '/Users/carvalhol/Desktop/GITs/RF_Matlab';
 
-testType = 'W'; %'C' for Complexity, 'W' for Weak Scaling, 'S' for Strong Scaling
 %methodChar = {'S','R','I'}; %'S' for Shinozuka, 'R' for Randomization, 'I' for Isotropic, put aditional i for independent
 %methodChar = {'S','Si'};
-dims       = [3];
+
 
 %methodChar = {'S', 'Si', 'R', 'Ri', 'I','Ii'};
 %searchFolder = 'Current/WEAK_Test/NEW';
 
-methodChar = {'S', 'Si', 'R', 'Ri'};
-searchFolder = 'Occigen/AutoTest';
+dims       = [3];
+methodChar = {'Si', 'S', 'F', 'Fi'};
+testType = 'W'; %'C' for Complexity, 'W' for Weak Scaling, 'S' for Strong Scaling
+searchFolder = 'ICEGE';
+%searchFolder = 'Occigen/AutoTest';
 
 % methodChar = {'S', 'R', 'I'};
 % searchFolder = 'WEAK_512';
@@ -33,7 +36,7 @@ searchFolder = 'Occigen/AutoTest';
 
 %Constants
 lWidth = 3; %Line width
-nMethods = 3;
+nMethods = 4;
 nTests = 3;
 sizeTimeVec = 3;
 kAdjust = 1;
@@ -47,6 +50,7 @@ linestyles = cellstr(char('-',':','-.','--','-',':','-.','--','-',':','-',':',..
 %Allocation
 methodText = cell(nMethods,1);
 methodBN = cell(nMethods,1);
+testTypeText = cell(2*nTests,1);
 testTypeBN = cell(nTests,1);
 
 %Methods
@@ -62,15 +66,25 @@ RANDOMIZATION = 3;
 methodText{RANDOMIZATION} = 'RANDO';
 methodBN{RANDOMIZATION} = 'Randomization';
 
+FFT = 4;
+methodText{FFT} = 'FFT';
+methodBN{FFT} = 'FFT';
+
 %Tests
 COMP = 1;
 testTypeBN{COMP} = 'Complexity';
+testTypeText{COMP} = '/COMP/';
+testTypeText{nTests+COMP} = '/COMP-i/';
 
 STRG = 2;
 testTypeBN{STRG} = 'Strong Scaling';
+testTypeText{STRG} = '/STRONG/';
+testTypeText{nTests+STRG} = '/STRONG-i/';
 
 WEAK = 3;
 testTypeBN{WEAK} = 'Weak Scaling';
+testTypeText{WEAK} = '/WEAK/';
+testTypeText{nTests+WEAK} = '/WEAK-i/';
 
 %% READING FILES
 
@@ -91,15 +105,18 @@ xNTotal_Loc = zeros(vecSize,1);
 kNTotal_Loc = zeros(vecSize,1);
 nb_procs = zeros(vecSize,1);
 nDim = zeros(vecSize,1);
-method = cell(vecSize,1);
+corrMod = zeros(vecSize,1);
+method = zeros(vecSize,1);
 testMask = false(vecSize,1);
 xMin_Loc  = cell(vecSize,1);
 xMax_Loc  = cell(vecSize,1);
 indep  = false(vecSize,1);
 testTypeVec = cell(vecSize,1);
+nInputsOnFile = zeros(vecSize,1);
 
 for file = 1:vecSize
-    %pathList(file).name
+    
+    pathList(file).name
     fid = fopen(pathList(file).name);
     line = fgetl(fid);
     while(line ~= -1)
@@ -107,67 +124,95 @@ for file = 1:vecSize
         if(strcmp(line, ' --nDim-----------------------'))
             data = fgetl(fid);
             nDim(file) = str2num(data);
+            nInputsOnFile(file) = nInputsOnFile(file) + 1;
         elseif(strcmp(line, ' --xMinGlob-----------------------'))
             data = fgetl(fid);
             xMin{file} = str2num(data);
+            nInputsOnFile(file) = nInputsOnFile(file) + 1;
         elseif(strcmp(line, ' --xMaxGlob-----------------------'))
             data = fgetl(fid);
             xMax{file} = str2num(data);
+            nInputsOnFile(file) = nInputsOnFile(file) + 1;
         elseif(strcmp(line, ' --xStep-----------------------'))
             data = fgetl(fid);
             xStep{file} = str2num(data);
+            nInputsOnFile(file) = nInputsOnFile(file) + 1;
         elseif(strcmp(line, ' --xMin_Loc-----------------------'))
             data = fgetl(fid);
             xMin_Loc{file} = str2num(data);
+            nInputsOnFile(file) = nInputsOnFile(file) + 1;
         elseif(strcmp(line, ' --xMax_Loc-----------------------'))
             data = fgetl(fid);
             xMax_Loc{file} = str2num(data);
+            nInputsOnFile(file) = nInputsOnFile(file) + 1;
         elseif(strcmp(line, ' --corrL-----------------------'))
             data = fgetl(fid);
             corrL{file} = str2num(data);
+            nInputsOnFile(file) = nInputsOnFile(file) + 1;
         elseif(strcmp(line, ' --timeVec-----------------------'))            
             for i = 1 : sizeTimeVec
                 data = fgetl(fid);
                 timeVec(file,i) = str2num(data);
             end
+            nInputsOnFile(file) = nInputsOnFile(file) + 1;
         elseif(strcmp(line, ' --sum_xNTotal-----------------------'))
             data = fgetl(fid);
             sum_xNTotal(file) = str2num(data);
+            nInputsOnFile(file) = nInputsOnFile(file) + 1;
         elseif(strcmp(line, ' --sum_kNTotal-----------------------'))
             data = fgetl(fid);
             sum_kNTotal(file) = str2num(data);
+            nInputsOnFile(file) = nInputsOnFile(file) + 1;
         elseif(strcmp(line, ' --xNTotal_Loc-----------------------'))
             data = fgetl(fid);
             xNTotal_Loc(file) = str2num(data);
+            nInputsOnFile(file) = nInputsOnFile(file) + 1;
         elseif(strcmp(line, ' --kNTotal_Loc-----------------------'))
             data = fgetl(fid);
             kNTotal_Loc(file) = str2num(data);
+            nInputsOnFile(file) = nInputsOnFile(file) + 1;
         elseif(strcmp(line, ' --nb_procs-----------------------'))
             data = fgetl(fid);
             nb_procs(file) = str2num(data);             
+            nInputsOnFile(file) = nInputsOnFile(file) + 1;
         elseif(strcmp(line, ' --method-----------------------'))
             data = fgetl(fid);
-            method{file} = data; 
+            method(file) = str2num(data); 
+            nInputsOnFile(file) = nInputsOnFile(file) + 1;
         elseif(strcmp(line, ' --corrMod-----------------------'))
             data = fgetl(fid);
-            corrMod{file} = data;
+            corrMod(file) = str2num(data);
+            nInputsOnFile(file) = nInputsOnFile(file) + 1;
         elseif(strcmp(line, ' --independent-----------------------'))
             data = fgetl(fid);
-            indep(file) = strcmp(data, ' T');                        
+            indep(file) = strcmp(data, ' T');             
+            nInputsOnFile(file) = nInputsOnFile(file) + 1;
         end        
     end
     %Finding Test Type
-    n = findstr(pathList(file).name, resultsFolder) - 2;
-    str1 = pathList(file).name;
-    testTypeVec{file} = str1(n);
+    %n = findstr(pathList(file).name, resultsFolder) - 2;
+    for test=1:size(testTypeText,1)
+        if(~isempty(findstr(pathList(file).name, testTypeText{test})))
+            testTypeVec{file} = testTypeText{test}(2);
+            break;
+        end
+    end
+    %str1 = pathList(file).name;
+    %testTypeVec{file} = str1(n);
 end
 
-%% Cleaning vectors from repeated cases
+%% Cleaning vectors from repeated and empty files cases
 
 labels = (1:vecSize)';
 time = timeVec(:,2) - timeVec(:,1);
 
 for file = 1:vecSize
+    
+    %Treating empty files
+    if(nInputsOnFile(file) == 0)
+        continue
+    end
+    
     %Testing if this test is not redundant
     if(labels(file) ~= file)
         continue
@@ -187,7 +232,7 @@ for file = 1:vecSize
         str2 = pathList(file2).name;
         
         if(strncmpi(str1,str2,n))
-            %'They Are In The Same Folder, take just one'
+            %'They Are In The Same Folder, average them'
             labels(file2) = file;
         end
     end
@@ -216,14 +261,16 @@ usedPathList = pathList(testMask);
 totalSize = sum(testMask);
 indep = indep(testMask);
 testTypeVec = testTypeVec(testMask);
+nInputsOnFile = nInputsOnFile(testMask);
 
 %% Processing data
 
 %Creating methodNb Vector
-methodNbVec = zeros(totalSize,1);
-methodNbVec(strcmp(method, ' RANDOMIZATION')) = RANDOMIZATION;
-methodNbVec(strcmp(method, ' SHINOZUKA')) = SHINOZUKA;
-methodNbVec(strcmp(method, ' ISOTROPIC')) = ISOTROPIC;
+%methodNbVec = zeros(totalSize,1);
+%methodNbVec(strcmp(method, ' RANDOMIZATION')) = RANDOMIZATION;
+%methodNbVec(strcmp(method, ' SHINOZUKA')) = SHINOZUKA;
+%methodNbVec(strcmp(method, ' ISOTROPIC')) = ISOTROPIC;
+methodNbVec = method;
 
 %Creating methodNb
 methodNb = zeros(length(methodChar),1);
@@ -234,6 +281,8 @@ for i = 1:length(methodChar)
         methodNb(i) = SHINOZUKA;
     elseif(strcmp(methodChar{i}(1), 'I')) 
         methodNb(i) = ISOTROPIC;
+    elseif(strcmp(methodChar{i}(1), 'F')) 
+        methodNb(i) = FFT;
     end
 end
 
@@ -247,7 +296,7 @@ end
 %Creating complexity Vectors
 complexity = zeros(totalSize,1);
 for i = 1:size(xMax,1)
-    complexity(i) = theoretical_complexity(xStep{i}, (xMax{i}-xMin{i})./corrL{i}, corrMod{i}, kAdjust, periodMult);
+    complexity(i) = theoretical_complexity(xStep{i}, (xMax{i}-xMin{i})./corrL{i}, corrMod(i), method(i), kAdjust, periodMult);
 end
 
 %% Ploting data
@@ -295,9 +344,10 @@ for i = 1:length(methodChar)
         switch testType
             case 'C'
                 %Legend info
-                legendInfo{(i-1)*(2*length(dims))+(2*j-1)} = [methodChar{i},' ',dimText];
-                legendInfo{(i-1)*(2*length(dims))+(2*j)}   = [methodChar{i},' ',dimText, ' theoretical'];
-                
+                %legendInfo{(i-1)*(2*length(dims))+(2*j-1)} = [methodChar{i},' ',dimText];
+                %legendInfo{(i-1)*(2*length(dims))+(2*j)}   = [methodChar{i},' ',dimText, ' theoretical'];
+                legendInfo{(i-1)*(2*length(dims))+(2*j-1)} = [methodBN{curMet},' ',dimText];
+                legendInfo{(i-1)*(2*length(dims))+(2*j)}   = [methodBN{curMet},' ',dimText, ' theoretical'];
                 
                 xVec = L_powD(criteria);
                 yVec = time(criteria);
@@ -311,10 +361,13 @@ for i = 1:length(methodChar)
                 %Lower Bound For Plotting
                 lBoundPlot = [1, 1, 1];
                 if(methodChar{i} == 'S')
-                    lBoundPlot = [8, 6, 2];
+                    lBoundPlot = [4, 4, 4];
                 end
                 if(methodChar{i} == 'R')
-                    lBoundPlot = [1, 1, 1];
+                    lBoundPlot = [4, 4, 4];
+                end
+                if(methodChar{i} == 'F')
+                    lBoundPlot = [4, 4, 5];
                 end
                 xVec = xVec(lBoundPlot(curDim):end);
                 yVec = yVec(lBoundPlot(curDim):end);
@@ -353,7 +406,7 @@ for i = 1:length(methodChar)
                 %yVec2 = yVec2(I);
                 
                 %Lower Bound For Plotting
-                lBoundPlot = [1, 1, 1];
+                lBoundPlot = [1, 1, 2];
                 xVec = xVec(lBoundPlot(curDim):end);
                 yVec = yVec(lBoundPlot(curDim):end);
                 %yVec2 = yVec2(lBoundPlot(dim):end);

@@ -6,10 +6,10 @@ clc
 %USER
 corrMod = 'G'; %G for Gaussian
 nDim = 2; %Number of Dimensions
-L_Glob = 4; %Starts in 0 and is a square (corrL = 1)
+L_Glob = 8; %Starts in 0 and is a square (corrL = 1)
 Nmc = 1; %Number of events
 method = 'S'; %S for Shinozuka
-parallelLevel = 3; % >0, will define the number of processors (fake)
+parallelLevel = 1; % >0, will define the number of processors (fake)
 independentFields = true;
 seed = 1;
 overLap = 0.4; %overLap in [corrL], should be an even multiple of xStep
@@ -25,7 +25,7 @@ nb_procs = parallelLevel^nDim;
 count = 0;
 xMin = zeros(nDim, 1);
 xMax = zeros(nDim, 1);
-stream = RandStream.getDefaultStream;
+!stream = RandStream.getDefaultStream;
 
 %%
 

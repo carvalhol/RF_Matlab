@@ -1,4 +1,4 @@
-function k = randomField( law, correl, L, mu, s, Nmc, x, y, z, dL, sd )
+function k = randomField( law, correl, L, mu, s, Nmc, x, y, z, dL, sd, change)
 % RANDOMFIELD to generate realizations of a random field with given
 % first-order marginal law and correlation structure
 %
@@ -29,6 +29,7 @@ if nargin<8; y = []; end
 if nargin<9; z = []; end
 if nargin<10; dL = []; end
 if nargin<11; sd = 'shuffle'; end
+if nargin<12; change = []; end
 d = 1 + ~isempty(y) + ~isempty(z);
     
 % reshaping
@@ -49,7 +50,7 @@ end
 if d==1;
     k = makeGauss1D( correl, x, L, dL, Nmc, sd );
 elseif d==2;
-    k = makeGauss2D( correl, x, y, L, dL, Nmc, sd );
+    k = makeGauss2D( correl, x, y, L, dL, Nmc, sd, change );
 elseif d==3;
     k = makeGauss3D( correl, x, y, z, L, dL, Nmc, sd );
 end
@@ -139,7 +140,7 @@ gx = amp * interp1( xk(1:indx), gx(1:indx,:), x-min(x) );
 %======= MAKEGAUSS ========
 % generator of gaussian random field with unit variance and zero mean
 % R. Cottereau 08/2012
-function gx = makeGauss2D( type, x, y, Lc, dL, Nmc, sd )
+function gx = makeGauss2D( type, x, y, Lc, dL, Nmc, sd, change )
 
 % constants
 xmax = [max(x)-min(x) max(y)-min(y)];
@@ -180,6 +181,12 @@ end
 % seeds in space
 rng( sd );
 gx = randn( Nk(1), Nk(2), Nmc );
+if(~isempty(change) == 1)
+    A=change(1);
+    B=change(2);
+    gx(A:B,A:B, Nmc)= randn( B-A+1, B-A+1, Nmc );
+end
+%gx(A,B, Nmc)= 100*gx(A,B, Nmc);
 
 % random field in fourier space (isotropic case)
 %gk = gx;

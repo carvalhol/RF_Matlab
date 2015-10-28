@@ -1,4 +1,4 @@
-function [complexity, xNTot_Out, kNTot_Out] = theoretical_complexity(norm_xStep, norm_L, corrMod, kAdjust, periodMult)
+function [complexity, xNTot_Out, kNTot_Out] = theoretical_complexity(norm_xStep, norm_L, corrMod, method, kAdjust, periodMult)
 
 
 %Call Exemple:
@@ -7,7 +7,9 @@ nDim = size(norm_L,2);
 kNTotal = 1;
 xNTotal = 1;
 
-if (strcmp(strtrim(corrMod), 'gaussian'))
+corrModChar = 'N';
+
+if (corrMod == 1)
     corrModChar = 'G';
 end
 
@@ -56,8 +58,13 @@ for i = 1:nDim
     xNTotal = xNTotal * (1 + norm_L(i)/norm_xStep(i));
 end
 
-complexity = kNTotal * xNTotal * nDim; %When using DGEMM - O(N^3)
-
+if(method == 4)
+    complexity = xNTotal*log(xNTotal); %When using FFT - O(Nlog(N))
+else
+    
+    complexity = kNTotal * xNTotal; %When using DGEMM - O(N^2)
+end
+    
 if nargout>=2
     xNTot_Out = xNTotal;
 end
