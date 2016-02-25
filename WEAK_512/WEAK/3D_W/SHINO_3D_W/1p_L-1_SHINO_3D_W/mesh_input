@@ -1,7 +1,0 @@
- $$nDim            3
- $$meshType unstructured   
- $$meshMod automatic      
-           $Min            $Max           $Step
-        0.00000         6.34960         0.10000 
-        0.00000         6.34960         0.10000 
-        0.00000         6.34960         0.10000 
