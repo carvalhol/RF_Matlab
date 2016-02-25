@@ -4,26 +4,32 @@ close all
 
 %% USER
 %baseFolder = '/home/lcp/Desktop/RF_Matlab';
-%baseFolder = '/mssmat2/home/paludo/Desktop/RF_Matlab';
-baseFolder = '/Users/carvalhol/Desktop/GITs/RF_Matlab';
+baseFolder = '/mssmat2/home/paludo/Desktop/RF_Matlab';
+%baseFolder = '/Users/carvalhol/Desktop/GITs/RF_Matlab';
 
-%methodChar = {'S','R','I'}; %'S' for Shinozuka, 'R' for Randomization, 'I' for Isotropic, put aditional i for independent
+%methodChar---------------
+%'S' for Shinozuka
+%'R' for Randomization
+%'I' for Isotropic
+%'F', for FFT
+%For all the methods put aditional i for independent
+
+%testType-----------------
+%'C' for Complexity
+%'W' for Weak Scaling
+%'S' for Strong Scaling
+
+%methodChar = {'S','R','I'}; 
 %methodChar = {'S','Si'};
-
 
 %methodChar = {'S', 'Si', 'R', 'Ri', 'I','Ii'};
 %searchFolder = 'Current/WEAK_Test/NEW';
 
-dims       = [3];
-%methodChar = {'S', 'F'};
-methodChar = {'F', 'Fi'};
-
-%testType = 'C'; %'C' for Complexity, 'W' for Weak Scaling, 'S' for Strong Scaling
-%searchFolder = 'COMP-Parallel';
+dims       = [2];
+methodChar = {'F','Fi'};
 
 testType = 'W'; %'C' for Complexity, 'W' for Weak Scaling, 'S' for Strong Scaling
-%searchFolder = 'ICEGE/WEAK';
-searchFolder = 'TestsOccygen';
+searchFolder = '2D_TESTS/WEAK';
 
 %searchFolder = 'Occigen/AutoTest';
 
@@ -45,7 +51,7 @@ searchFolder = 'TestsOccygen';
 lWidth = 3; %Line width
 nMethods = 4;
 nTests = 3;
-sizeTimeVec = 3;
+sizeTimeVec = 4;
 kAdjust = 1;
 periodMult = 1.1;
 fileName = 'singleGen';
@@ -103,27 +109,27 @@ vecSize = size(pathList,1);
 %Allocation
 xMin  = cell(vecSize,1);
 xMax  = cell(vecSize,1);
+nFields = cell(vecSize,1);
 xStep  = cell(vecSize,1);
 corrL = cell(vecSize,1);
 timeVec  = zeros(vecSize,sizeTimeVec);
 nNodes = zeros(vecSize,1);
-sum_xNTotal = zeros(vecSize,1);
-sum_kNTotal = zeros(vecSize,1);
 xNTotal_Loc = zeros(vecSize,1);
 kNTotal_Loc = zeros(vecSize,1);
 nb_procs = zeros(vecSize,1);
+locLevel = cell(vecSize,1);
 nDim = zeros(vecSize,1);
 corrMod = zeros(vecSize,1);
 method = zeros(vecSize,1);
 testMask = false(vecSize,1);
-xMin_Loc  = cell(vecSize,1);
-xMax_Loc  = cell(vecSize,1);
-indep  = false(vecSize,1);
+procExtent  = cell(vecSize,1);
 testTypeVec = cell(vecSize,1);
 nInputsOnFile = zeros(vecSize,1);
+independent = false(vecSize,1);
 
 for file = 1:vecSize
     
+    file
     pathList(file).name
     fid = fopen(pathList(file).name);
     line = fgetl(fid);
@@ -132,6 +138,10 @@ for file = 1:vecSize
         if(strcmp(line, ' --nDim-----------------------'))
             data = fgetl(fid);
             nDim(file) = str2num(data);
+            nInputsOnFile(file) = nInputsOnFile(file) + 1;
+        elseif(strcmp(line, ' --nFields-----------------------'))
+            data = fgetl(fid);
+            nFields{file} = str2num(data);
             nInputsOnFile(file) = nInputsOnFile(file) + 1;
         elseif(strcmp(line, ' --xMinGlob-----------------------'))
             data = fgetl(fid);
@@ -145,31 +155,33 @@ for file = 1:vecSize
             data = fgetl(fid);
             xStep{file} = str2num(data);
             nInputsOnFile(file) = nInputsOnFile(file) + 1;
-        elseif(strcmp(line, ' --xMin_Loc-----------------------'))
+        elseif(strcmp(line, ' --procExtent-----------------------'))
             data = fgetl(fid);
-            xMin_Loc{file} = str2num(data);
-            nInputsOnFile(file) = nInputsOnFile(file) + 1;
-        elseif(strcmp(line, ' --xMax_Loc-----------------------'))
-            data = fgetl(fid);
-            xMax_Loc{file} = str2num(data);
+            procExtent{file} = str2num(data);
             nInputsOnFile(file) = nInputsOnFile(file) + 1;
         elseif(strcmp(line, ' --corrL-----------------------'))
             data = fgetl(fid);
             corrL{file} = str2num(data);
             nInputsOnFile(file) = nInputsOnFile(file) + 1;
-        elseif(strcmp(line, ' --timeVec-----------------------'))            
-            for i = 1 : sizeTimeVec
-                data = fgetl(fid);
-                timeVec(file,i) = str2num(data);
-            end
-            nInputsOnFile(file) = nInputsOnFile(file) + 1;
-        elseif(strcmp(line, ' --sum_xNTotal-----------------------'))
+        elseif(strcmp(line, ' --prep_CPU_Time-----------------------'))            
+            i = 1;
             data = fgetl(fid);
-            sum_xNTotal(file) = str2num(data);
+            timeVec(file,i) = str2num(data);
             nInputsOnFile(file) = nInputsOnFile(file) + 1;
-        elseif(strcmp(line, ' --sum_kNTotal-----------------------'))
+        elseif(strcmp(line, ' --gen_CPU_Time-----------------------'))            
+            i = 2;
             data = fgetl(fid);
-            sum_kNTotal(file) = str2num(data);
+            timeVec(file,i) = str2num(data);
+            nInputsOnFile(file) = nInputsOnFile(file) + 1;
+        elseif(strcmp(line, ' --loc_CPU_Time-----------------------'))            
+            i = 3;
+            data = fgetl(fid);
+            timeVec(file,i) = str2num(data);
+            nInputsOnFile(file) = nInputsOnFile(file) + 1;
+        elseif(strcmp(line, ' --trans_CPU_Time-----------------------'))            
+            i = 4;
+            data = fgetl(fid);
+            timeVec(file,i) = str2num(data);
             nInputsOnFile(file) = nInputsOnFile(file) + 1;
         elseif(strcmp(line, ' --xNTotal_Loc-----------------------'))
             data = fgetl(fid);
@@ -191,10 +203,10 @@ for file = 1:vecSize
             data = fgetl(fid);
             corrMod(file) = str2num(data);
             nInputsOnFile(file) = nInputsOnFile(file) + 1;
-        elseif(strcmp(line, ' --independent-----------------------'))
-            data = fgetl(fid);
-            indep(file) = strcmp(data, ' T');             
-            nInputsOnFile(file) = nInputsOnFile(file) + 1;
+%         elseif(strcmp(line, ' --independent-----------------------'))
+%             data = fgetl(fid);
+%             indep(file) = strcmp(data, ' T');             
+%             nInputsOnFile(file) = nInputsOnFile(file) + 1;
         end
     end
     
@@ -206,7 +218,10 @@ for file = 1:vecSize
         if(~isempty(findstr(pathList(file).name, testTypeText{test})))
             testTypeVec{file} = testTypeText{test}(2);
             break;
-        end
+        end   
+    end
+    if(isempty(findstr(pathList(file).name, '-g/')))
+        independent(file) = true;
     end
     %str1 = pathList(file).name;
     %testTypeVec{file} = str1(n);
@@ -217,7 +232,7 @@ end
 %% Cleaning vectors from repeated and empty files cases
 
 labels = (1:vecSize)';
-time = timeVec(:,2) - timeVec(:,1);
+time = sum(timeVec,2);
 
 for file = 1:vecSize
     
@@ -261,13 +276,10 @@ nDim = nDim(testMask);
 xMin  = xMin(testMask);
 xMax  = xMax(testMask);
 xStep = xStep(testMask);
-xMin_Loc = xMin_Loc(testMask);
-xMax_Loc = xMax_Loc(testMask);
+procExtent = procExtent(testMask);
 corrL = corrL(testMask);
 time  = time(testMask);
 var_time = var_time(testMask);
-sum_xNTotal = sum_xNTotal(testMask);
-sum_kNTotal = sum_kNTotal(testMask);
 nb_procs = nb_procs(testMask);
 method = method(testMask);
 corrMod = corrMod(testMask);
@@ -275,11 +287,14 @@ kNTotal_Loc = kNTotal_Loc(testMask);
 xNTotal_Loc = xNTotal_Loc(testMask);
 usedPathList = pathList(testMask);
 totalSize = sum(testMask);
-indep = indep(testMask);
 testTypeVec = testTypeVec(testMask);
 nInputsOnFile = nInputsOnFile(testMask);
 nNodes = nNodes(testMask);
 var_coef = var_time./time;
+locLevel = locLevel(testMask);
+procExtent  = procExtent(testMask);
+nFields = nFields(testMask);
+independent = independent(testMask);
 
 %% Processing data
 
@@ -317,6 +332,15 @@ for i = 1:size(xMax,1)
     complexity(i) = theoretical_complexity(xStep{i}, (xMax{i}-xMin{i})./corrL{i}, corrMod(i), method(i), kAdjust, periodMult);
 end
 
+% %Creating independent Vector
+% independent = false(size(nFields,1),1);
+% for i = 1:size(nFields,1)
+%     if(prod(nFields{i}) == 1)
+%         independent(i) = true;
+%     end
+% end
+
+
 %% Ploting data
 fig = figure(1);
 hold on
@@ -351,8 +375,8 @@ for i = 1:length(methodChar)
         %Filtering
         criteria = (nDim == curDim &...
             methodNbVec == curMet &...
-            strcmp(testTypeVec, testType) &...
-            indep == curIndep);        
+            strcmp(testTypeVec, testType)&...
+            independent == curIndep);        
         if(sum(criteria) == 0)
             legendMask((i-1)*(2*length(dims))+(2*j-1)) = false;
             legendMask((i-1)*(2*length(dims))+(2*j)) = false;
@@ -385,7 +409,7 @@ for i = 1:length(methodChar)
                     lBoundPlot = [4, 4, 1];
                 end
                 if(methodChar{i} == 'F')
-                    lBoundPlot = [4, 4, 1];
+                    lBoundPlot = [4, 13, 1];
                     %uniVec = 1:2:numel(yVec);
                     %yVec2 = yVec2./uniVec;
                     
