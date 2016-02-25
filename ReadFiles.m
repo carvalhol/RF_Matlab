@@ -15,9 +15,16 @@ baseFolder = '/Users/carvalhol/Desktop/GITs/RF_Matlab';
 %searchFolder = 'Current/WEAK_Test/NEW';
 
 dims       = [3];
-methodChar = {'Si', 'S', 'F', 'Fi'};
+%methodChar = {'S', 'F'};
+methodChar = {'F', 'Fi'};
+
+%testType = 'C'; %'C' for Complexity, 'W' for Weak Scaling, 'S' for Strong Scaling
+%searchFolder = 'COMP-Parallel';
+
 testType = 'W'; %'C' for Complexity, 'W' for Weak Scaling, 'S' for Strong Scaling
-searchFolder = 'ICEGE';
+%searchFolder = 'ICEGE/WEAK';
+searchFolder = 'TestsOccygen';
+
 %searchFolder = 'Occigen/AutoTest';
 
 % methodChar = {'S', 'R', 'I'};
@@ -42,7 +49,7 @@ sizeTimeVec = 3;
 kAdjust = 1;
 periodMult = 1.1;
 fileName = 'singleGen';
-resultsFolder = 'results';
+resultsFolder = '/results/';
 
 linestyles = cellstr(char('-',':','-.','--','-',':','-.','--','-',':','-',':',...
 '-.','--','-',':','-.','--','-',':','-.'));
@@ -99,6 +106,7 @@ xMax  = cell(vecSize,1);
 xStep  = cell(vecSize,1);
 corrL = cell(vecSize,1);
 timeVec  = zeros(vecSize,sizeTimeVec);
+nNodes = zeros(vecSize,1);
 sum_xNTotal = zeros(vecSize,1);
 sum_kNTotal = zeros(vecSize,1);
 xNTotal_Loc = zeros(vecSize,1);
@@ -187,8 +195,11 @@ for file = 1:vecSize
             data = fgetl(fid);
             indep(file) = strcmp(data, ' T');             
             nInputsOnFile(file) = nInputsOnFile(file) + 1;
-        end        
+        end
     end
+    
+    nNodes(file) = prod(((xMax{file}-xMin{file})./xStep{file})+1);
+    
     %Finding Test Type
     %n = findstr(pathList(file).name, resultsFolder) - 2;
     for test=1:size(testTypeText,1)
@@ -199,6 +210,8 @@ for file = 1:vecSize
     end
     %str1 = pathList(file).name;
     %testTypeVec{file} = str1(n);
+    
+    fclose(fid);
 end
 
 %% Cleaning vectors from repeated and empty files cases
@@ -220,7 +233,7 @@ for file = 1:vecSize
         testMask(file) = true;
     end
     
-    n = findstr(pathList(file).name, resultsFolder) - 1;
+    n = strfind(pathList(file).name, resultsFolder) - 1;
     
     str1 = pathList(file).name;
     
@@ -239,7 +252,9 @@ for file = 1:vecSize
 end
 
 %Taking the average time
+var_time = accumarray(labels, time, [], @(x) var(x,1));
 time = accumarray(labels, time, [], @(x) mean(x,1));
+
 
 % Cleaning vectors from repeated cases
 nDim = nDim(testMask);
@@ -250,6 +265,7 @@ xMin_Loc = xMin_Loc(testMask);
 xMax_Loc = xMax_Loc(testMask);
 corrL = corrL(testMask);
 time  = time(testMask);
+var_time = var_time(testMask);
 sum_xNTotal = sum_xNTotal(testMask);
 sum_kNTotal = sum_kNTotal(testMask);
 nb_procs = nb_procs(testMask);
@@ -262,6 +278,8 @@ totalSize = sum(testMask);
 indep = indep(testMask);
 testTypeVec = testTypeVec(testMask);
 nInputsOnFile = nInputsOnFile(testMask);
+nNodes = nNodes(testMask);
+var_coef = var_time./time;
 
 %% Processing data
 
@@ -361,17 +379,25 @@ for i = 1:length(methodChar)
                 %Lower Bound For Plotting
                 lBoundPlot = [1, 1, 1];
                 if(methodChar{i} == 'S')
-                    lBoundPlot = [4, 4, 4];
+                    lBoundPlot = [4, 4, 1];
                 end
                 if(methodChar{i} == 'R')
-                    lBoundPlot = [4, 4, 4];
+                    lBoundPlot = [4, 4, 1];
                 end
                 if(methodChar{i} == 'F')
-                    lBoundPlot = [4, 4, 5];
+                    lBoundPlot = [4, 4, 1];
+                    %uniVec = 1:2:numel(yVec);
+                    %yVec2 = yVec2./uniVec;
+                    
                 end
                 xVec = xVec(lBoundPlot(curDim):end);
                 yVec = yVec(lBoundPlot(curDim):end);
                 yVec2 = yVec2(lBoundPlot(curDim):end);
+                
+                if(methodChar{i} == 'F')
+                    %yVec2 = yVec;
+                    
+                end
                 
                 if(length(xVec)<1)
                     continue
@@ -403,13 +429,26 @@ for i = 1:length(methodChar)
                 %Ordering
                 [xVec,I]=sort(xVec);
                 yVec = yVec(I);
+                toto = nNodes(criteria);
+                toto = toto(I);
                 %yVec2 = yVec2(I);
                 
                 %Lower Bound For Plotting
-                lBoundPlot = [1, 1, 2];
+                lBoundPlot = [1, 1, 1];
+                if(curMet == SHINOZUKA)
+                    lBoundPlot = [1, 1, 2];
+                    xVec = xVec./2;
+                    
+                end
                 xVec = xVec(lBoundPlot(curDim):end);
                 yVec = yVec(lBoundPlot(curDim):end);
                 %yVec2 = yVec2(lBoundPlot(dim):end);
+                
+                %if(curMet == FFT && curIndep == true)
+                %    yVec(6:end) = yVec(5)*yVec(6:end)/yVec(6);
+                %    xVec = xVec(1:end-1);
+                %    yVec = yVec(1:end-1);
+                %end
                 
                 if(length(xVec)<1)
                     continue

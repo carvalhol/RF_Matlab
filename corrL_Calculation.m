@@ -3,8 +3,9 @@ clear all
 
 %cd ./GLOBAL_FIELD/h5
 %cd ./GLOBAL_PROC/h5
-cd ./INDEP_FIELD/h5
+%cd ./INDEP_FIELD/h5
 %cd ./INDEP_PROC/h5
+cd /Users/carvalhol/Desktop
 
 plotRes = true;
 init = pwd;
@@ -66,24 +67,24 @@ for i = 1 : size(nome,1)
     %         aux{i,j} = h5read(nome(i).name, info.GroupHierarchy.Datasets(j).Name);
     %     end
     
-    %% Ploting Results
-    if(plotRes)
-        switch nDim
-            case 1
-                
-            case 2
-                %figure(1)
-                %hold on
-                [x,y] = meshgrid(xMinGlob(1):xStep(1):xMaxGlob(1),xMinGlob(2):xStep(2):xMaxGlob(2));
-                maxPlot = 1;
-                hSurf = surf(x,y,RF,'EdgeColor','none','LineStyle','none','FaceLighting','phong');
-                %hold off
-            case 3
-                
-            otherwise
-                error('Dimension not accepted in plot')
-        end
-    end
+%     %% Ploting Results
+%     if(plotRes)
+%         switch nDim
+%             case 1
+%                 
+%             case 2
+%                 %figure(1)
+%                 %hold on
+%                 [x,y] = meshgrid(xMinGlob(1):xStep(1):xMaxGlob(1),xMinGlob(2):xStep(2):xMaxGlob(2));
+%                 maxPlot = 1;
+%                 hSurf = surf(x,y,RF,'EdgeColor','none','LineStyle','none','FaceLighting','phong');
+%                 %hold off
+%             case 3
+%                 
+%             otherwise
+%                 error('Dimension not accepted in plot')
+%         end
+%     end
 end
 
 %cd init

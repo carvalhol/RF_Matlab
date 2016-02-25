@@ -160,7 +160,8 @@ switch type
     
     % triangle power spectrum = sinc^2 correlation
     case 'sinc2'
-        Sk = tripuls( k1', 4*pi/Lc(1) ) * tripuls( k2, 4*pi/Lc(2) );
+%        Sk = tripuls( k1', 4*pi/Lc(1) ) * tripuls( k2, 4*pi/Lc(2) );
+        Sk = tripuls( sqrt(repmat((k1.^2)',[1 length(k2)])+ repmat(k2.^2,[length(k1) 1])), 4*pi/Lc(1) );
         if ~isempty(dL) && any(dL>Lc)
             Sk ( k1>2*pi/dL(1), : ) = 0;
             Sk ( :, k2>2*pi/dL(2) ) = 0;
@@ -185,6 +186,7 @@ if(~isempty(change) == 1)
     A=change(1);
     B=change(2);
     gx(A:B,A:B, Nmc)= randn( B-A+1, B-A+1, Nmc );
+    %gx(A:B,A:B, Nmc)= 2 * gx(A:B,A:B, Nmc);
 end
 %gx(A,B, Nmc)= 100*gx(A,B, Nmc);
 
