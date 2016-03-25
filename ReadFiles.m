@@ -4,8 +4,8 @@ close all
 
 %% USER
 %baseFolder = '/home/lcp/Desktop/RF_Matlab';
-baseFolder = '/mssmat2/home/paludo/Desktop/RF_Matlab';
-%baseFolder = '/Users/carvalhol/Desktop/GITs/RF_Matlab';
+%baseFolder = '/mssmat2/home/paludo/Desktop/RF_Matlab';
+baseFolder = '/Users/carvalhol/Desktop/GITs/RF_Matlab';
 
 %methodChar---------------
 %'S' for Shinozuka
@@ -29,7 +29,7 @@ dims       = [2];
 methodChar = {'F','Fi'};
 
 testType = 'W'; %'C' for Complexity, 'W' for Weak Scaling, 'S' for Strong Scaling
-searchFolder = '2D_TESTS/WEAK';
+searchFolder = 'TESTS_RF_V3/WEAK';
 
 %searchFolder = 'Occigen/AutoTest';
 
@@ -51,10 +51,10 @@ searchFolder = '2D_TESTS/WEAK';
 lWidth = 3; %Line width
 nMethods = 4;
 nTests = 3;
-sizeTimeVec = 4;
+sizeBTVec = 9;
 kAdjust = 1;
 periodMult = 1.1;
-fileName = 'singleGen';
+fileName = 'Sample_Info.h5';
 resultsFolder = '/results/';
 
 linestyles = cellstr(char('-',':','-.','--','-',':','-.','--','-',':','-',':',...
@@ -110,10 +110,16 @@ vecSize = size(pathList,1);
 xMin  = cell(vecSize,1);
 xMax  = cell(vecSize,1);
 nFields = cell(vecSize,1);
+procExtent = cell(vecSize,1);
 xStep  = cell(vecSize,1);
 corrL = cell(vecSize,1);
-timeVec  = zeros(vecSize,sizeTimeVec);
+nFields = cell(vecSize,1);
+BT_min  = zeros(vecSize,sizeBTVec);
+BT_max  = zeros(vecSize,sizeBTVec);
+BT_avg  = zeros(vecSize,sizeBTVec);
+BT_stdDev  = zeros(vecSize,sizeBTVec);
 nNodes = zeros(vecSize,1);
+localizationLevel = zeros(vecSize,1);
 xNTotal_Loc = zeros(vecSize,1);
 kNTotal_Loc = zeros(vecSize,1);
 nb_procs = zeros(vecSize,1);
@@ -127,119 +133,80 @@ testTypeVec = cell(vecSize,1);
 nInputsOnFile = zeros(vecSize,1);
 independent = false(vecSize,1);
 
-for file = 1:vecSize
+for i = 1 : vecSize
+    info = hdf5info(pathList(i).name);
+    nAttrib = size(info.GroupHierarchy.Attributes,2);
+    nDSet  = size(info.GroupHierarchy.Datasets,2);
     
-    file
-    pathList(file).name
-    fid = fopen(pathList(file).name);
-    line = fgetl(fid);
-    while(line ~= -1)
-        line = fgetl(fid);
-        if(strcmp(line, ' --nDim-----------------------'))
-            data = fgetl(fid);
-            nDim(file) = str2num(data);
-            nInputsOnFile(file) = nInputsOnFile(file) + 1;
-        elseif(strcmp(line, ' --nFields-----------------------'))
-            data = fgetl(fid);
-            nFields{file} = str2num(data);
-            nInputsOnFile(file) = nInputsOnFile(file) + 1;
-        elseif(strcmp(line, ' --xMinGlob-----------------------'))
-            data = fgetl(fid);
-            xMin{file} = str2num(data);
-            nInputsOnFile(file) = nInputsOnFile(file) + 1;
-        elseif(strcmp(line, ' --xMaxGlob-----------------------'))
-            data = fgetl(fid);
-            xMax{file} = str2num(data);
-            nInputsOnFile(file) = nInputsOnFile(file) + 1;
-        elseif(strcmp(line, ' --xStep-----------------------'))
-            data = fgetl(fid);
-            xStep{file} = str2num(data);
-            nInputsOnFile(file) = nInputsOnFile(file) + 1;
-        elseif(strcmp(line, ' --procExtent-----------------------'))
-            data = fgetl(fid);
-            procExtent{file} = str2num(data);
-            nInputsOnFile(file) = nInputsOnFile(file) + 1;
-        elseif(strcmp(line, ' --corrL-----------------------'))
-            data = fgetl(fid);
-            corrL{file} = str2num(data);
-            nInputsOnFile(file) = nInputsOnFile(file) + 1;
-        elseif(strcmp(line, ' --prep_CPU_Time-----------------------'))            
-            i = 1;
-            data = fgetl(fid);
-            timeVec(file,i) = str2num(data);
-            nInputsOnFile(file) = nInputsOnFile(file) + 1;
-        elseif(strcmp(line, ' --gen_CPU_Time-----------------------'))            
-            i = 2;
-            data = fgetl(fid);
-            timeVec(file,i) = str2num(data);
-            nInputsOnFile(file) = nInputsOnFile(file) + 1;
-        elseif(strcmp(line, ' --loc_CPU_Time-----------------------'))            
-            i = 3;
-            data = fgetl(fid);
-            timeVec(file,i) = str2num(data);
-            nInputsOnFile(file) = nInputsOnFile(file) + 1;
-        elseif(strcmp(line, ' --trans_CPU_Time-----------------------'))            
-            i = 4;
-            data = fgetl(fid);
-            timeVec(file,i) = str2num(data);
-            nInputsOnFile(file) = nInputsOnFile(file) + 1;
-        elseif(strcmp(line, ' --xNTotal_Loc-----------------------'))
-            data = fgetl(fid);
-            xNTotal_Loc(file) = str2num(data);
-            nInputsOnFile(file) = nInputsOnFile(file) + 1;
-        elseif(strcmp(line, ' --kNTotal_Loc-----------------------'))
-            data = fgetl(fid);
-            kNTotal_Loc(file) = str2num(data);
-            nInputsOnFile(file) = nInputsOnFile(file) + 1;
-        elseif(strcmp(line, ' --nb_procs-----------------------'))
-            data = fgetl(fid);
-            nb_procs(file) = str2num(data);             
-            nInputsOnFile(file) = nInputsOnFile(file) + 1;
-        elseif(strcmp(line, ' --method-----------------------'))
-            data = fgetl(fid);
-            method(file) = str2num(data); 
-            nInputsOnFile(file) = nInputsOnFile(file) + 1;
-        elseif(strcmp(line, ' --corrMod-----------------------'))
-            data = fgetl(fid);
-            corrMod(file) = str2num(data);
-            nInputsOnFile(file) = nInputsOnFile(file) + 1;
-%         elseif(strcmp(line, ' --independent-----------------------'))
-%             data = fgetl(fid);
-%             indep(file) = strcmp(data, ' T');             
-%             nInputsOnFile(file) = nInputsOnFile(file) + 1;
+    %Reading Attributes
+    for j = 1 : nAttrib
+        if (strcmp(info.GroupHierarchy.Attributes(j).Shortname, 'nb_procs'))
+            nb_procs(i) = info.GroupHierarchy.Attributes(j).Value;
+        elseif (strcmp(info.GroupHierarchy.Attributes(j).Shortname, 'nDim'))
+            nDim(i) = info.GroupHierarchy.Attributes(j).Value;
+%         elseif (strcmp(info.GroupHierarchy.Attributes(j).Shortname, 'Nmc'))
+%             Nmc(i) = info.GroupHierarchy.Attributes(j).Value;
+         elseif (strcmp(info.GroupHierarchy.Attributes(j).Shortname, 'method'))
+             method(i) = info.GroupHierarchy.Attributes(j).Value;
+%         elseif (strcmp(info.GroupHierarchy.Attributes(j).Shortname, 'seedStart'))
+%             seedStart(i) = info.GroupHierarchy.Attributes(j).Value;
+         elseif (strcmp(info.GroupHierarchy.Attributes(j).Shortname, 'corrMod'))
+             corrMod(i) = info.GroupHierarchy.Attributes(j).Value;
+%         elseif (strcmp(info.GroupHierarchy.Attributes(j).Shortname, 'margiFirst'))
+%             margiFirst(i) = info.GroupHierarchy.Attributes(j).Value;
+%         %elseif (strcmp(info.GroupHierarchy.Attributes(j).Shortname, 'gen_CPU_Time'))
+%         %    gen_CPU_Time(i) = info.GroupHierarchy.Attributes(j).Value;
+         elseif (strcmp(info.GroupHierarchy.Attributes(j).Shortname, 'gen_WALL_Time'))
+             gen_WALL_Time(i) = info.GroupHierarchy.Attributes(j).Value;
+         elseif (strcmp(info.GroupHierarchy.Attributes(j).Shortname, 'nFields'))
+             nFields{i} = info.GroupHierarchy.Attributes(j).Value;
+         elseif (strcmp(info.GroupHierarchy.Attributes(j).Shortname, 'procExtent'))
+             procExtent{i} = info.GroupHierarchy.Attributes(j).Value;
+%         %elseif (strcmp(info.GroupHierarchy.Attributes(j).Shortname, 'seed'))
+%         %    seed = info.GroupHierarchy.Attributes(j).Value;
+%         elseif (strcmp(info.GroupHierarchy.Attributes(j).Shortname, 'xMaxGlob'))
+%             xMaxGlob{i} = info.GroupHierarchy.Attributes(j).Value;
+%         elseif (strcmp(info.GroupHierarchy.Attributes(j).Shortname, 'xMinGlob'))
+%             xMinGlob{i} = info.GroupHierarchy.Attributes(j).Value;
+%         elseif (strcmp(info.GroupHierarchy.Attributes(j).Shortname, 'xStep'))
+%             xStep{i} = info.GroupHierarchy.Attributes(j).Value;
+         elseif (strcmp(info.GroupHierarchy.Attributes(j).Shortname, 'BT_min'))
+             BT_min(i,:) = info.GroupHierarchy.Attributes(j).Value;
+         elseif (strcmp(info.GroupHierarchy.Attributes(j).Shortname, 'BT_max'))
+             BT_max(i,:) = info.GroupHierarchy.Attributes(j).Value;
+         elseif (strcmp(info.GroupHierarchy.Attributes(j).Shortname, 'BT_avg'))
+             BT_avg(i,:) = info.GroupHierarchy.Attributes(j).Value;
+         elseif (strcmp(info.GroupHierarchy.Attributes(j).Shortname, 'BT_stdDev'))
+             BT_stdDev(i,:) = info.GroupHierarchy.Attributes(j).Value;
+         elseif (strcmp(info.GroupHierarchy.Attributes(j).Shortname, 'corrL'))
+             corrL{i} = info.GroupHierarchy.Attributes(j).Value;
+         elseif (strcmp(info.GroupHierarchy.Attributes(j).Shortname, 'overlap'))
+             overlap{i} = info.GroupHierarchy.Attributes(j).Value;
         end
     end
     
-    nNodes(file) = prod(((xMax{file}-xMin{file})./xStep{file})+1);
-    
     %Finding Test Type
-    %n = findstr(pathList(file).name, resultsFolder) - 2;
     for test=1:size(testTypeText,1)
-        if(~isempty(findstr(pathList(file).name, testTypeText{test})))
-            testTypeVec{file} = testTypeText{test}(2);
+        if(~isempty(findstr(pathList(i).name, testTypeText{test})))
+            testTypeVec{i} = testTypeText{test}(2);
             break;
         end   
     end
-    if(isempty(findstr(pathList(file).name, '-g/')))
-        independent(file) = true;
-    end
-    %str1 = pathList(file).name;
-    %testTypeVec{file} = str1(n);
     
-    fclose(fid);
 end
+
 
 %% Cleaning vectors from repeated and empty files cases
 
 labels = (1:vecSize)';
-time = sum(timeVec,2);
+time = sum(BT_avg,2);
 
 for file = 1:vecSize
     
     %Treating empty files
-    if(nInputsOnFile(file) == 0)
-        continue
-    end
+    %if(nInputsOnFile(file) == 0)
+    %    continue
+    %end
     
     %Testing if this test is not redundant
     if(labels(file) ~= file)
@@ -269,43 +236,37 @@ end
 %Taking the average time
 var_time = accumarray(labels, time, [], @(x) var(x,1));
 time = accumarray(labels, time, [], @(x) mean(x,1));
-
-
+ 
+ 
 % Cleaning vectors from repeated cases
 nDim = nDim(testMask);
-xMin  = xMin(testMask);
-xMax  = xMax(testMask);
-xStep = xStep(testMask);
-procExtent = procExtent(testMask);
-corrL = corrL(testMask);
+% xMin  = xMin(testMask);
+% xMax  = xMax(testMask);
+% xStep = xStep(testMask);
+% corrL = corrL(testMask);
 time  = time(testMask);
 var_time = var_time(testMask);
 nb_procs = nb_procs(testMask);
 method = method(testMask);
 corrMod = corrMod(testMask);
-kNTotal_Loc = kNTotal_Loc(testMask);
-xNTotal_Loc = xNTotal_Loc(testMask);
-usedPathList = pathList(testMask);
-totalSize = sum(testMask);
-testTypeVec = testTypeVec(testMask);
-nInputsOnFile = nInputsOnFile(testMask);
-nNodes = nNodes(testMask);
-var_coef = var_time./time;
-locLevel = locLevel(testMask);
-procExtent  = procExtent(testMask);
+% kNTotal_Loc = kNTotal_Loc(testMask);
+% xNTotal_Loc = xNTotal_Loc(testMask);
+% usedPathList = pathList(testMask);
+% totalSize = sum(testMask);
+% testTypeVec = testTypeVec(testMask);
+% nInputsOnFile = nInputsOnFile(testMask);
+% nNodes = nNodes(testMask);
+% var_coef = var_time./time;
+% locLevel = locLevel(testMask);
+% procExtent  = procExtent(testMask);
 nFields = nFields(testMask);
-independent = independent(testMask);
-
+procExtent = procExtent(testMask);
+% independent = independent(testMask);
+% 
 %% Processing data
 
-%Creating methodNb Vector
-%methodNbVec = zeros(totalSize,1);
-%methodNbVec(strcmp(method, ' RANDOMIZATION')) = RANDOMIZATION;
-%methodNbVec(strcmp(method, ' SHINOZUKA')) = SHINOZUKA;
-%methodNbVec(strcmp(method, ' ISOTROPIC')) = ISOTROPIC;
-methodNbVec = method;
 
-%Creating methodNb
+%Creating methodNb (Mapping from the Char Names to a Number)
 methodNb = zeros(length(methodChar),1);
 for i = 1:length(methodChar)
     if(strcmp(methodChar{i}(1), 'R'))
@@ -318,27 +279,27 @@ for i = 1:length(methodChar)
         methodNb(i) = FFT;
     end
 end
-
-%Creating L_powD Vector
-L_powD = zeros(totalSize,1);
-for i = 1:size(xMax,1)
-    L_powD(i) = sqrt(sum(((xMax{i}-xMin{i})./corrL{i}).^2));
-    L_powD(i) = prod(((xMax{i}-xMin{i})./corrL{i}));
-end
-
-%Creating complexity Vectors
-complexity = zeros(totalSize,1);
-for i = 1:size(xMax,1)
-    complexity(i) = theoretical_complexity(xStep{i}, (xMax{i}-xMin{i})./corrL{i}, corrMod(i), method(i), kAdjust, periodMult);
-end
-
-% %Creating independent Vector
-% independent = false(size(nFields,1),1);
-% for i = 1:size(nFields,1)
-%     if(prod(nFields{i}) == 1)
-%         independent(i) = true;
-%     end
+% 
+% %Creating L_powD Vector
+% L_powD = zeros(totalSize,1);
+% for i = 1:size(xMax,1)
+%     L_powD(i) = sqrt(sum(((xMax{i}-xMin{i})./corrL{i}).^2));
+%     L_powD(i) = prod(((xMax{i}-xMin{i})./corrL{i}));
 % end
+% 
+% %Creating complexity Vectors
+% complexity = zeros(totalSize,1);
+% for i = 1:size(xMax,1)
+%     complexity(i) = theoretical_complexity(xStep{i}, (xMax{i}-xMin{i})./corrL{i}, corrMod(i), method(i), kAdjust, periodMult);
+% end
+% 
+%Creating independent Vector
+independent = true(size(nFields,1),1);
+for i = 1:size(nFields,1)
+    if(prod(nFields{i}) == 1)
+        independent(i) = false;
+    end
+end
 
 
 %% Ploting data
@@ -374,7 +335,7 @@ for i = 1:length(methodChar)
         
         %Filtering
         criteria = (nDim == curDim &...
-            methodNbVec == curMet &...
+            method == curMet &...
             strcmp(testTypeVec, testType)&...
             independent == curIndep);        
         if(sum(criteria) == 0)
@@ -461,9 +422,12 @@ for i = 1:length(methodChar)
                 lBoundPlot = [1, 1, 1];
                 if(curMet == SHINOZUKA)
                     lBoundPlot = [1, 1, 2];
-                    xVec = xVec./2;
+                    %xVec = xVec./2;
                     
+                elseif(curMet == FFT)
+                     lBoundPlot = [1, 1, 2];   
                 end
+                
                 xVec = xVec(lBoundPlot(curDim):end);
                 yVec = yVec(lBoundPlot(curDim):end);
                 %yVec2 = yVec2(lBoundPlot(dim):end);
@@ -493,7 +457,7 @@ for i = 1:length(methodChar)
         end
 
     end
-end
+ end
 
 switch testType
     case 'W'

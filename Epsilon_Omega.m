@@ -6,8 +6,13 @@ close all
 %baseFolder = '/home/lcp/Desktop/RF_Matlab';
 %baseFolder = '/mssmat2/home/paludo/Desktop/RF_Matlab';
 baseFolder = '/Users/carvalhol/Desktop/GITs/RF_Matlab';
+
 searchFolder = '2DSamples/2D/FFT-g';
 fileName = 'BBox_L01_001_001.h5';
+
+%searchFolder = '/Users/carvalhol/Desktop/GITs/Utilities/AutoTest/genTests/COMP/2D/FFT-g';
+%fileName = 'Sample_Info.h5';
+
 nFolders = 5;
 
 makerStyle = {'--'; '-'; ':'};
