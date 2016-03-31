@@ -7,472 +7,419 @@ close all
 %baseFolder = '/mssmat2/home/paludo/Desktop/RF_Matlab';
 baseFolder = '/Users/carvalhol/Desktop/GITs/RF_Matlab';
 
-%methodChar---------------
-%'S' for Shinozuka
-%'R' for Randomization
-%'I' for Isotropic
-%'F', for FFT
-%For all the methods put aditional i for independent
+%% User Entries
 
-%testType-----------------
-%'C' for Complexity
-%'W' for Weak Scaling
-%'S' for Strong Scaling
+%methodStr---------------
+%'SHI' for Shinozuka
+%'RAN' for Randomization
+%'ISO' for Isotropic
+%'FFT', for FFT
+%For all the methods choose -g for global and -l for localization method
 
-%methodChar = {'S','R','I'}; 
-%methodChar = {'S','Si'};
+% searchFolder = 'NEW_Tests/WEAK_2';
+% testType   = 'WEAK'; %'COMP' for Complexity, 'WEAK' for Weak Scaling, 'STRONG' for Strong Scaling
+% dims       = [2,3]; %Which dimensions take into account.
+% methodStr = {'FFT-g','FFT-l'};
 
-%methodChar = {'S', 'Si', 'R', 'Ri', 'I','Ii'};
-%searchFolder = 'Current/WEAK_Test/NEW';
+searchFolder = 'NEW_Tests';
+testType   = 'COMP'; %'COMP' for Complexity, 'WEAK' for Weak Scaling, 'STRONG' for Strong Scaling
+dims       = [2,3]; %Which dimensions take into account.
+methodStr = {'FFT-g','FFT-l'};
 
-dims       = [2];
-methodChar = {'F','Fi'};
-
-testType = 'W'; %'C' for Complexity, 'W' for Weak Scaling, 'S' for Strong Scaling
-searchFolder = 'TESTS_RF_V3/WEAK';
-
-%searchFolder = 'Occigen/AutoTest';
-
-% methodChar = {'S', 'R', 'I'};
-% searchFolder = 'WEAK_512';
-
-% methodChar = {'S','R','I'}
-% searchFolder = 'Current';
-% methodChar = {'I','Ii'};
-% searchFolder = 'Current/ISO_Test';
-%searchFolder = 'NEWEST_BACKUP';
-%searchFolder = 'GOOD_RESULTS_BACKUP';
 
 %---------------------------------
 
 %% CONSTANTS AND INITIALIZATION
 
 %Constants
-lWidth = 3; %Line width
 nMethods = 4;
-nTests = 3;
-sizeBTVec = 9;
 kAdjust = 1;
-periodMult = 1.1;
 fileName = 'Sample_Info.h5';
 resultsFolder = '/results/';
+sizeBTVec = 9;
+nTests = numel(dims)*numel(methodStr);
+Legend=cell(0,1);
 
 linestyles = cellstr(char('-',':','-.','--','-',':','-.','--','-',':','-',':',...
 '-.','--','-',':','-.','--','-',':','-.'));
 
-%Allocation
-methodText = cell(nMethods,1);
-methodBN = cell(nMethods,1);
-testTypeText = cell(2*nTests,1);
-testTypeBN = cell(nTests,1);
+%% READING FILES AND PLOTTING DATA
 
-%Methods
-ISOTROPIC = 1;
-methodText{ISOTROPIC} = 'ISO';
-methodBN{ISOTROPIC} = 'Isotropic Spectral Method';
-
-SHINOZUKA = 2;
-methodText{SHINOZUKA} = 'SHINO'; %'SHINO', 'RANDO' or 'ISO'
-methodBN{SHINOZUKA} = 'Spectral Method';
-
-RANDOMIZATION = 3;
-methodText{RANDOMIZATION} = 'RANDO';
-methodBN{RANDOMIZATION} = 'Randomization';
-
-FFT = 4;
-methodText{FFT} = 'FFT';
-methodBN{FFT} = 'FFT';
-
-%Tests
-COMP = 1;
-testTypeBN{COMP} = 'Complexity';
-testTypeText{COMP} = '/COMP/';
-testTypeText{nTests+COMP} = '/COMP-i/';
-
-STRG = 2;
-testTypeBN{STRG} = 'Strong Scaling';
-testTypeText{STRG} = '/STRONG/';
-testTypeText{nTests+STRG} = '/STRONG-i/';
-
-WEAK = 3;
-testTypeBN{WEAK} = 'Weak Scaling';
-testTypeText{WEAK} = '/WEAK/';
-testTypeText{nTests+WEAK} = '/WEAK-i/';
-
-%% READING FILES
-
-cd([searchFolder])
-pathList = subdir(fileName); %Gives all the paths that have a singleGen file
-cd(baseFolder);
-vecSize = size(pathList,1);
-
-%Allocation
-xMin  = cell(vecSize,1);
-xMax  = cell(vecSize,1);
-nFields = cell(vecSize,1);
-procExtent = cell(vecSize,1);
-xStep  = cell(vecSize,1);
-corrL = cell(vecSize,1);
-nFields = cell(vecSize,1);
-BT_min  = zeros(vecSize,sizeBTVec);
-BT_max  = zeros(vecSize,sizeBTVec);
-BT_avg  = zeros(vecSize,sizeBTVec);
-BT_stdDev  = zeros(vecSize,sizeBTVec);
-nNodes = zeros(vecSize,1);
-localizationLevel = zeros(vecSize,1);
-xNTotal_Loc = zeros(vecSize,1);
-kNTotal_Loc = zeros(vecSize,1);
-nb_procs = zeros(vecSize,1);
-locLevel = cell(vecSize,1);
-nDim = zeros(vecSize,1);
-corrMod = zeros(vecSize,1);
-method = zeros(vecSize,1);
-testMask = false(vecSize,1);
-procExtent  = cell(vecSize,1);
-testTypeVec = cell(vecSize,1);
-nInputsOnFile = zeros(vecSize,1);
-independent = false(vecSize,1);
-
-for i = 1 : vecSize
-    info = hdf5info(pathList(i).name);
-    nAttrib = size(info.GroupHierarchy.Attributes,2);
-    nDSet  = size(info.GroupHierarchy.Datasets,2);
-    
-    %Reading Attributes
-    for j = 1 : nAttrib
-        if (strcmp(info.GroupHierarchy.Attributes(j).Shortname, 'nb_procs'))
-            nb_procs(i) = info.GroupHierarchy.Attributes(j).Value;
-        elseif (strcmp(info.GroupHierarchy.Attributes(j).Shortname, 'nDim'))
-            nDim(i) = info.GroupHierarchy.Attributes(j).Value;
-%         elseif (strcmp(info.GroupHierarchy.Attributes(j).Shortname, 'Nmc'))
-%             Nmc(i) = info.GroupHierarchy.Attributes(j).Value;
-         elseif (strcmp(info.GroupHierarchy.Attributes(j).Shortname, 'method'))
-             method(i) = info.GroupHierarchy.Attributes(j).Value;
-%         elseif (strcmp(info.GroupHierarchy.Attributes(j).Shortname, 'seedStart'))
-%             seedStart(i) = info.GroupHierarchy.Attributes(j).Value;
-         elseif (strcmp(info.GroupHierarchy.Attributes(j).Shortname, 'corrMod'))
-             corrMod(i) = info.GroupHierarchy.Attributes(j).Value;
-%         elseif (strcmp(info.GroupHierarchy.Attributes(j).Shortname, 'margiFirst'))
-%             margiFirst(i) = info.GroupHierarchy.Attributes(j).Value;
-%         %elseif (strcmp(info.GroupHierarchy.Attributes(j).Shortname, 'gen_CPU_Time'))
-%         %    gen_CPU_Time(i) = info.GroupHierarchy.Attributes(j).Value;
-         elseif (strcmp(info.GroupHierarchy.Attributes(j).Shortname, 'gen_WALL_Time'))
-             gen_WALL_Time(i) = info.GroupHierarchy.Attributes(j).Value;
-         elseif (strcmp(info.GroupHierarchy.Attributes(j).Shortname, 'nFields'))
-             nFields{i} = info.GroupHierarchy.Attributes(j).Value;
-         elseif (strcmp(info.GroupHierarchy.Attributes(j).Shortname, 'procExtent'))
-             procExtent{i} = info.GroupHierarchy.Attributes(j).Value;
-%         %elseif (strcmp(info.GroupHierarchy.Attributes(j).Shortname, 'seed'))
-%         %    seed = info.GroupHierarchy.Attributes(j).Value;
-%         elseif (strcmp(info.GroupHierarchy.Attributes(j).Shortname, 'xMaxGlob'))
-%             xMaxGlob{i} = info.GroupHierarchy.Attributes(j).Value;
-%         elseif (strcmp(info.GroupHierarchy.Attributes(j).Shortname, 'xMinGlob'))
-%             xMinGlob{i} = info.GroupHierarchy.Attributes(j).Value;
-%         elseif (strcmp(info.GroupHierarchy.Attributes(j).Shortname, 'xStep'))
-%             xStep{i} = info.GroupHierarchy.Attributes(j).Value;
-         elseif (strcmp(info.GroupHierarchy.Attributes(j).Shortname, 'BT_min'))
-             BT_min(i,:) = info.GroupHierarchy.Attributes(j).Value;
-         elseif (strcmp(info.GroupHierarchy.Attributes(j).Shortname, 'BT_max'))
-             BT_max(i,:) = info.GroupHierarchy.Attributes(j).Value;
-         elseif (strcmp(info.GroupHierarchy.Attributes(j).Shortname, 'BT_avg'))
-             BT_avg(i,:) = info.GroupHierarchy.Attributes(j).Value;
-         elseif (strcmp(info.GroupHierarchy.Attributes(j).Shortname, 'BT_stdDev'))
-             BT_stdDev(i,:) = info.GroupHierarchy.Attributes(j).Value;
-         elseif (strcmp(info.GroupHierarchy.Attributes(j).Shortname, 'corrL'))
-             corrL{i} = info.GroupHierarchy.Attributes(j).Value;
-         elseif (strcmp(info.GroupHierarchy.Attributes(j).Shortname, 'overlap'))
-             overlap{i} = info.GroupHierarchy.Attributes(j).Value;
-        end
-    end
-    
-    %Finding Test Type
-    for test=1:size(testTypeText,1)
-        if(~isempty(findstr(pathList(i).name, testTypeText{test})))
-            testTypeVec{i} = testTypeText{test}(2);
-            break;
-        end   
-    end
-    
-end
-
-
-%% Cleaning vectors from repeated and empty files cases
-
-labels = (1:vecSize)';
-time = sum(BT_avg,2);
-
-for file = 1:vecSize
-    
-    %Treating empty files
-    %if(nInputsOnFile(file) == 0)
-    %    continue
-    %end
-    
-    %Testing if this test is not redundant
-    if(labels(file) ~= file)
-        continue
-    else
-        testMask(file) = true;
-    end
-    
-    n = strfind(pathList(file).name, resultsFolder) - 1;
-    
-    str1 = pathList(file).name;
-    
-    for file2 = 1:vecSize
-        if(file == file2)
-            continue
-        end
-        
-        str2 = pathList(file2).name;
-        
-        if(strncmpi(str1,str2,n))
-            %'They Are In The Same Folder, average them'
-            labels(file2) = file;
-        end
-    end
-end
-
-%Taking the average time
-var_time = accumarray(labels, time, [], @(x) var(x,1));
-time = accumarray(labels, time, [], @(x) mean(x,1));
- 
- 
-% Cleaning vectors from repeated cases
-nDim = nDim(testMask);
-% xMin  = xMin(testMask);
-% xMax  = xMax(testMask);
-% xStep = xStep(testMask);
-% corrL = corrL(testMask);
-time  = time(testMask);
-var_time = var_time(testMask);
-nb_procs = nb_procs(testMask);
-method = method(testMask);
-corrMod = corrMod(testMask);
-% kNTotal_Loc = kNTotal_Loc(testMask);
-% xNTotal_Loc = xNTotal_Loc(testMask);
-% usedPathList = pathList(testMask);
-% totalSize = sum(testMask);
-% testTypeVec = testTypeVec(testMask);
-% nInputsOnFile = nInputsOnFile(testMask);
-% nNodes = nNodes(testMask);
-% var_coef = var_time./time;
-% locLevel = locLevel(testMask);
-% procExtent  = procExtent(testMask);
-nFields = nFields(testMask);
-procExtent = procExtent(testMask);
-% independent = independent(testMask);
-% 
-%% Processing data
-
-
-%Creating methodNb (Mapping from the Char Names to a Number)
-methodNb = zeros(length(methodChar),1);
-for i = 1:length(methodChar)
-    if(strcmp(methodChar{i}(1), 'R'))
-        methodNb(i) = RANDOMIZATION;
-    elseif(strcmp(methodChar{i}(1), 'S')) 
-        methodNb(i) = SHINOZUKA;
-    elseif(strcmp(methodChar{i}(1), 'I')) 
-        methodNb(i) = ISOTROPIC;
-    elseif(strcmp(methodChar{i}(1), 'F')) 
-        methodNb(i) = FFT;
-    end
-end
-% 
-% %Creating L_powD Vector
-% L_powD = zeros(totalSize,1);
-% for i = 1:size(xMax,1)
-%     L_powD(i) = sqrt(sum(((xMax{i}-xMin{i})./corrL{i}).^2));
-%     L_powD(i) = prod(((xMax{i}-xMin{i})./corrL{i}));
-% end
-% 
-% %Creating complexity Vectors
-% complexity = zeros(totalSize,1);
-% for i = 1:size(xMax,1)
-%     complexity(i) = theoretical_complexity(xStep{i}, (xMax{i}-xMin{i})./corrL{i}, corrMod(i), method(i), kAdjust, periodMult);
-% end
-% 
-%Creating independent Vector
-independent = true(size(nFields,1),1);
-for i = 1:size(nFields,1)
-    if(prod(nFields{i}) == 1)
-        independent(i) = false;
-    end
-end
-
-
-%% Ploting data
 fig = figure(1);
 hold on
 hold all
 
-switch testType
-    case 'C'
-        legendInfo = cell(2*length(methodChar)*length(dims),1);
-        legendMask = true(2*length(methodChar)*length(dims),1);
-    case 'W'
-        legendInfo = cell(length(methodChar)*length(dims)+1,1);
-        legendMask = true(length(methodChar)*length(dims)+1,1);
-        legendInfo{end} = 'Reference';
-    case 'S'
+for Idim = 1:numel(dims)
+    for Imet = 1:numel(methodStr)
         
-end
+        cd(baseFolder);
+        cd(searchFolder);
+        
+        cropedPath = strcat('./', ...
+                     testType,'/', ...
+                     num2str(dims(Idim)),'D/', ...
+                     methodStr(Imet));
+                 
+        Legend(end+1) = strcat(testType,{' '},num2str(dims(Idim)),{'D '},methodStr(Imet));
+                 
+        cd(cropedPath{1});
+        folderList = subdir(fileName);
+        vecSize = numel(folderList);
 
-for i = 1:length(methodChar)
-    
-    curMet=methodNb(i);
-    curIndep = false;
-    if(strcmp(methodChar{i}(end),'i'))
-        curIndep = true;
-    end
-    
+        %Allocation---------------------
+        nb_procs = zeros(vecSize,1);
+        nDim = zeros(vecSize,1);
+        method = zeros(vecSize,1);
+        corrMod = zeros(vecSize,1);
+        gen_WALL_Time = zeros(vecSize,1);
+        nFields  = zeros(vecSize,dims(Idim));
+        procExtent = zeros(vecSize,dims(Idim));
+        xMaxGlob = zeros(vecSize,dims(Idim));
+        xMinGlob = zeros(vecSize,dims(Idim));
+        xStep    = zeros(vecSize,dims(Idim));
+        BT_min  = zeros(vecSize,sizeBTVec);
+        BT_max  = zeros(vecSize,sizeBTVec);
+        BT_avg  = zeros(vecSize,sizeBTVec);
+        BT_stdDev  = zeros(vecSize,sizeBTVec);
+        corrL   = zeros(vecSize,dims(Idim));
+        overlap = zeros(vecSize,dims(Idim));
+        localizationLevel = zeros(vecSize,1);
 
-    for j = 1:length(dims)
-        curDim = dims(j);
-        
-        dimText = [num2str(curDim),'D'];
-        
-        %Filtering
-        criteria = (nDim == curDim &...
-            method == curMet &...
-            strcmp(testTypeVec, testType)&...
-            independent == curIndep);        
-        if(sum(criteria) == 0)
-            legendMask((i-1)*(2*length(dims))+(2*j-1)) = false;
-            legendMask((i-1)*(2*length(dims))+(2*j)) = false;
-            continue
+        for Ipath = 1:numel(folderList)
+            
+            folderList(Ipath).name
+            info = hdf5info(folderList(Ipath).name);
+            nAttrib = size(info.GroupHierarchy.Attributes,2);
+            nDSet  = size(info.GroupHierarchy.Datasets,2);
+            %file_id = H5F.open(filename);
+            %H5F.close(file_id);
+            
+            %% Reading Attributes
+            for Iattr = 1 : nAttrib
+                if (strcmp(info.GroupHierarchy.Attributes(Iattr).Shortname, 'nb_procs'))
+                    nb_procs(Ipath) = info.GroupHierarchy.Attributes(Iattr).Value;
+                elseif (strcmp(info.GroupHierarchy.Attributes(Iattr).Shortname, 'nDim'))
+                    nDim(Ipath) = info.GroupHierarchy.Attributes(Iattr).Value;
+                    %         elseif (strcmp(info.GroupHierarchy.Attributes(j).Shortname, 'Nmc'))
+                    %             Nmc(i) = info.GroupHierarchy.Attributes(j).Value;
+                elseif (strcmp(info.GroupHierarchy.Attributes(Iattr).Shortname, 'method'))
+                    method(Ipath) = info.GroupHierarchy.Attributes(Iattr).Value;
+                    %         elseif (strcmp(info.GroupHierarchy.Attributes(j).Shortname, 'seedStart'))
+                    %             seedStart(i) = info.GroupHierarchy.Attributes(j).Value;
+                elseif (strcmp(info.GroupHierarchy.Attributes(Iattr).Shortname, 'corrMod'))
+                    corrMod(Ipath) = info.GroupHierarchy.Attributes(Iattr).Value;
+                    %         elseif (strcmp(info.GroupHierarchy.Attributes(j).Shortname, 'margiFirst'))
+                    %             margiFirst(i) = info.GroupHierarchy.Attributes(j).Value;
+                    %         %elseif (strcmp(info.GroupHierarchy.Attributes(j).Shortname, 'gen_CPU_Time'))
+                    %         %    gen_CPU_Time(i) = info.GroupHierarchy.Attributes(j).Value;
+                elseif (strcmp(info.GroupHierarchy.Attributes(Iattr).Shortname, 'gen_WALL_Time'))
+                    gen_WALL_Time(Ipath) = info.GroupHierarchy.Attributes(Iattr).Value;
+                elseif (strcmp(info.GroupHierarchy.Attributes(Iattr).Shortname, 'nFields'))
+                    nFields(Ipath,:) = info.GroupHierarchy.Attributes(Iattr).Value;
+                elseif (strcmp(info.GroupHierarchy.Attributes(Iattr).Shortname, 'procExtent'))
+                    procExtent(Ipath,:) = info.GroupHierarchy.Attributes(Iattr).Value;
+                    %elseif (strcmp(info.GroupHierarchy.Attributes(j).Shortname, 'seed'))
+                    %    seed = info.GroupHierarchy.Attributes(j).Value;
+                 elseif (strcmp(info.GroupHierarchy.Attributes(Iattr).Shortname, 'xMaxGlob'))
+                     xMaxGlob(Ipath,:) = info.GroupHierarchy.Attributes(Iattr).Value;
+                 elseif (strcmp(info.GroupHierarchy.Attributes(Iattr).Shortname, 'xMinGlob'))
+                     xMinGlob(Ipath,:) = info.GroupHierarchy.Attributes(Iattr).Value;
+                elseif (strcmp(info.GroupHierarchy.Attributes(Iattr).Shortname, 'xStep'))
+                    xStep(Ipath,:) = info.GroupHierarchy.Attributes(Iattr).Value;
+                elseif (strcmp(info.GroupHierarchy.Attributes(Iattr).Shortname, 'BT_min'))
+                    BT_min(Ipath,:) = info.GroupHierarchy.Attributes(Iattr).Value;
+                elseif (strcmp(info.GroupHierarchy.Attributes(Iattr).Shortname, 'BT_max'))
+                    BT_max(Ipath,:) = info.GroupHierarchy.Attributes(Iattr).Value;
+                elseif (strcmp(info.GroupHierarchy.Attributes(Iattr).Shortname, 'BT_avg'))
+                    BT_avg(Ipath,:) = info.GroupHierarchy.Attributes(Iattr).Value;
+                elseif (strcmp(info.GroupHierarchy.Attributes(Iattr).Shortname, 'BT_stdDev'))
+                    BT_stdDev(Ipath,:) = info.GroupHierarchy.Attributes(Iattr).Value;
+                elseif (strcmp(info.GroupHierarchy.Attributes(Iattr).Shortname, 'corrL'))
+                    corrL(Ipath,:) = info.GroupHierarchy.Attributes(Iattr).Value;
+                elseif (strcmp(info.GroupHierarchy.Attributes(Iattr).Shortname, 'overlap'))
+                    overlap(Ipath,:) = info.GroupHierarchy.Attributes(Iattr).Value;
+                elseif (strcmp(info.GroupHierarchy.Attributes(Iattr).Shortname, 'localizationLevel'))
+                    localizationLevel(Ipath) = info.GroupHierarchy.Attributes(Iattr).Value;    
+                end
+            end
         end
         
-        switch testType
-            case 'C'
-                %Legend info
-                %legendInfo{(i-1)*(2*length(dims))+(2*j-1)} = [methodChar{i},' ',dimText];
-                %legendInfo{(i-1)*(2*length(dims))+(2*j)}   = [methodChar{i},' ',dimText, ' theoretical'];
-                legendInfo{(i-1)*(2*length(dims))+(2*j-1)} = [methodBN{curMet},' ',dimText];
-                legendInfo{(i-1)*(2*length(dims))+(2*j)}   = [methodBN{curMet},' ',dimText, ' theoretical'];
-                
-                xVec = L_powD(criteria);
-                yVec = time(criteria);
-                yVec2 = complexity(criteria);
-                
-                %Ordering
-                [xVec,I]=sort(xVec);
-                yVec = yVec(I);
-                yVec2 = yVec2(I);
-                
-                %Lower Bound For Plotting
-                lBoundPlot = [1, 1, 1];
-                if(methodChar{i} == 'S')
-                    lBoundPlot = [4, 4, 1];
-                end
-                if(methodChar{i} == 'R')
-                    lBoundPlot = [4, 4, 1];
-                end
-                if(methodChar{i} == 'F')
-                    lBoundPlot = [4, 13, 1];
-                    %uniVec = 1:2:numel(yVec);
-                    %yVec2 = yVec2./uniVec;
-                    
-                end
-                xVec = xVec(lBoundPlot(curDim):end);
-                yVec = yVec(lBoundPlot(curDim):end);
-                yVec2 = yVec2(lBoundPlot(curDim):end);
-                
-                if(methodChar{i} == 'F')
-                    %yVec2 = yVec;
-                    
-                end
-                
-                if(length(xVec)<1)
+        %% Cleaning vectors from repeated and empty files cases
+        
+        testMask = false(vecSize, 1);
+        
+        labels = (1:vecSize)';
+        time = sum(BT_avg(:,1:3),2).*prod(nFields.^repmat(localizationLevel,1,dims(Idim)),2);
+        %time = gen_WALL_Time;
+        
+        for file = 1:vecSize
+
+            %Testing if this test is not redundant
+            if(labels(file) ~= file)
+                continue
+            else
+                testMask(file) = true;
+            end
+            
+            n = strfind(folderList(file).name, resultsFolder) - 1;
+            
+            str1 = folderList(file).name;
+            
+            for file2 = 1:vecSize
+                if(file == file2)
                     continue
                 end
                 
-                %Normalization
-                %xVec = xVec/xVec(1);
-                yVec = yVec/yVec(1);
-                yVec2 = yVec2/yVec2(1);
+                str2 = folderList(file2).name;
                 
-                %Ploting
-                plot(xVec, yVec, '--^', 'MarkerSize',10, 'LineWidth', lWidth);
-                plot(xVec, yVec2, '-', 'LineWidth', lWidth);
-                xlabel('(L/l_c)^d', 'FontSize', 20);
-                ylabel('CPU Time', 'FontSize', 20)
-                
-            case 'W'
-                if(curIndep)
-                    legendInfo{(i-1)*(length(dims))+(j)} = [methodBN{curMet},' ',dimText,' with localization'];
-                else
-                    legendInfo{(i-1)*(length(dims))+(j)} = [methodBN{curMet},' ',dimText];
+                if(strncmpi(str1,str2,n))
+                    %'They Are In The Same Folder, average them'
+                    labels(file2) = file;
                 end
-                %legendInfo{2*dim}   = [dimText, ' theoretical'];
-                
+            end
+        end
+        
+        %Taking the time average and variance
+        var_time = accumarray(labels, time, [], @(x) var(x,1));
+        time = accumarray(labels, time, [], @(x) mean(x,1));
+
+        %% Plotting Results
+        
+        lWidth = 5;
+        
+        %switch testType
+            %case 'WEAK'               
                 %Filtering
-                xVec = nb_procs(criteria);
-                yVec = time(criteria)./(xVec);
+                nPoints = prod(1+int64((xMaxGlob(testMask,:) - xMinGlob(testMask,:))./xStep(testMask,:)),2);
+                xRange = prod((xMaxGlob(testMask,:) - xMinGlob(testMask,:))./corrL(testMask,:),2);
+                nb_procs = nb_procs(testMask);
+                
+                xVec = xRange;
+                yVec = time(testMask);
+                
                 
                 %Ordering
                 [xVec,I]=sort(xVec);
                 yVec = yVec(I);
-                toto = nNodes(criteria);
-                toto = toto(I);
-                %yVec2 = yVec2(I);
                 
                 %Lower Bound For Plotting
-                lBoundPlot = [1, 1, 1];
-                if(curMet == SHINOZUKA)
-                    lBoundPlot = [1, 1, 2];
-                    %xVec = xVec./2;
-                    
-                elseif(curMet == FFT)
-                     lBoundPlot = [1, 1, 2];   
+                lBoundPlot = 1;
+                hBoundPlot = numel(yVec);
+                %if(dims(Idim) == 3 && strcmp(methodStr(Imet), 'FFT-l'))
+                if(strcmp(Legend(end), 'WEAK 3D FFT-l'))
+                    lBoundPlot = 2;
+                end
+                if(strcmp(Legend(end), 'WEAK 2D FFT-g'))
+                    hBoundPlot = 8;
                 end
                 
-                xVec = xVec(lBoundPlot(curDim):end);
-                yVec = yVec(lBoundPlot(curDim):end);
-                %yVec2 = yVec2(lBoundPlot(dim):end);
+                xVec = xVec(lBoundPlot:hBoundPlot);
+                yVec = yVec(lBoundPlot:hBoundPlot);
+                nb_procs = nb_procs(lBoundPlot:hBoundPlot);
                 
-                %if(curMet == FFT && curIndep == true)
-                %    yVec(6:end) = yVec(5)*yVec(6:end)/yVec(6);
-                %    xVec = xVec(1:end-1);
-                %    yVec = yVec(1:end-1);
-                %end
-                
-                if(length(xVec)<1)
+                if(numel(xVec)<1)
                     continue
                 end
                 
                 %Normalization
-                %xVec = xVec/xVec(1);
-                yVec = yVec/yVec(1);
-                %yVec2 = yVec2/yVec2(1);
+                %yVec = yVec/yVec(1);
+                
+                pointTags = cell(numel(yVec),1);
+                for i = 1:numel(yVec)
+                    pointTags{i} = sprintf('\n\n%d', nb_procs(i));
+                end
                 
                 %Ploting
                 plot(xVec, yVec, '--^', 'MarkerSize',10, 'LineWidth', lWidth);
-                %plot(xVec, yVec2, '-');
-                xlabel('Number of processors', 'FontSize', 20);
-                ylabel('Normalized Wall Time', 'FontSize', 20)
-            case 'S'
-        
-        end
-
+                text(xVec,yVec,pointTags,'HorizontalAlignment','center', 'FontSize', 15);
+                xlabel('(L/l_c)^d', 'FontSize', 20);
+                %xlabel('Number of processors', 'FontSize', 20);
+                ylabel('Wall Time [s]', 'FontSize', 20);
+            %case 'COMP'
+                
+        %end
     end
- end
-
-switch testType
-    case 'W'
-        legendInfo{end} = 'Reference';
-        plot(xVec, ones(length(xVec),1), '-', 'MarkerSize',10, 'LineWidth', lWidth);
-        ylim([0.1 1000])
-        xlim([1 max(xVec)])
 end
 
 grid('on')
 box('on')
 set(gca,'xscale','log')
 set(gca,'yscale','log', 'FontSize',15)
-legend(legendInfo(legendMask),'Location','northwest','FontSize',15)
-% 
-% saveas(fig,[testTypeBN, '_', methodBN,'_L'],'epsc');
+legend(Legend,'Location','southeast','FontSize',15)
+cd(baseFolder);
 
-hold off
+% 
+% %% Ploting data
+% fig = figure(1);
+% hold on
+% hold all
+% 
+% switch testType
+%     case 'C'
+%         legendInfo = cell(2*length(methodChar)*length(dims),1);
+%         legendMask = true(2*length(methodChar)*length(dims),1);
+%     case 'W'
+%         legendInfo = cell(length(methodChar)*length(dims)+1,1);
+%         legendMask = true(length(methodChar)*length(dims)+1,1);
+%         legendInfo{end} = 'Reference';
+%     case 'S'
+%         
+% end 
+% 
+% for i = 1:length(methodChar)
+%     
+%     curMet=methodNb(i);
+%     curIndep = false;
+%     if(strcmp(methodChar{i}(end),'i'))
+%         curIndep = true;
+%     end
+%     
+% 
+%     for j = 1:length(dims)
+%         curDim = dims(j);
+%         
+%         dimText = [num2str(curDim),'D'];
+%         
+%         %Filtering
+%         criteria = (nDim == curDim &...
+%             method == curMet &...
+%             strcmp(testTypeVec, testType)&...
+%             independent == curIndep);        
+%         if(sum(criteria) == 0)
+%             legendMask((i-1)*(2*length(dims))+(2*j-1)) = false;
+%             legendMask((i-1)*(2*length(dims))+(2*j)) = false;
+%             continue
+%         end
+%         
+%         switch testType
+%             case 'C'
+%                 %Legend info
+%                 %legendInfo{(i-1)*(2*length(dims))+(2*j-1)} = [methodChar{i},' ',dimText];
+%                 %legendInfo{(i-1)*(2*length(dims))+(2*j)}   = [methodChar{i},' ',dimText, ' theoretical'];
+%                 legendInfo{(i-1)*(2*length(dims))+(2*j-1)} = [methodBN{curMet},' ',dimText];
+%                 legendInfo{(i-1)*(2*length(dims))+(2*j)}   = [methodBN{curMet},' ',dimText, ' theoretical'];
+%                 
+%                 xVec = L_powD(criteria);
+%                 yVec = time(criteria);
+%                 yVec2 = complexity(criteria);
+%                 
+%                 %Ordering
+%                 [xVec,I]=sort(xVec);
+%                 yVec = yVec(I);
+%                 yVec2 = yVec2(I);
+%                 
+%                 %Lower Bound For Plotting
+%                 lBoundPlot = [1, 1, 1];
+%                 if(methodChar{i} == 'S')
+%                     lBoundPlot = [4, 4, 1];
+%                 end
+%                 if(methodChar{i} == 'R')
+%                     lBoundPlot = [4, 4, 1];
+%                 end
+%                 if(methodChar{i} == 'F')
+%                     lBoundPlot = [4, 13, 1];
+%                     %uniVec = 1:2:numel(yVec);
+%                     %yVec2 = yVec2./uniVec;
+%                     
+%                 end
+%                 xVec = xVec(lBoundPlot(curDim):end);
+%                 yVec = yVec(lBoundPlot(curDim):end);
+%                 yVec2 = yVec2(lBoundPlot(curDim):end);
+%                 
+%                 if(methodChar{i} == 'F')
+%                     %yVec2 = yVec;
+%                     
+%                 end
+%                 
+%                 if(length(xVec)<1)
+%                     continue
+%                 end
+%                 
+%                 %Normalization
+%                 %xVec = xVec/xVec(1);
+%                 yVec = yVec/yVec(1);
+%                 yVec2 = yVec2/yVec2(1);
+%                 
+%                 %Ploting
+%                 plot(xVec, yVec, '--^', 'MarkerSize',10, 'LineWidth', lWidth);
+%                 plot(xVec, yVec2, '-', 'LineWidth', lWidth);
+%                 xlabel('(L/l_c)^d', 'FontSize', 20);
+%                 ylabel('CPU Time', 'FontSize', 20)
+%                 
+%             case 'W'
+%                 if(curIndep)
+%                     legendInfo{(i-1)*(length(dims))+(j)} = [methodBN{curMet},' ',dimText,' with localization'];
+%                 else
+%                     legendInfo{(i-1)*(length(dims))+(j)} = [methodBN{curMet},' ',dimText];
+%                 end
+%                 %legendInfo{2*dim}   = [dimText, ' theoretical'];
+%                 
+%                 %Filtering
+%                 xVec = nb_procs(criteria);
+%                 yVec = time(criteria)./(xVec);
+%                 
+%                 %Ordering
+%                 [xVec,I]=sort(xVec);
+%                 yVec = yVec(I);
+%                 toto = nNodes(criteria);
+%                 toto = toto(I);
+%                 %yVec2 = yVec2(I);
+%                 
+%                 %Lower Bound For Plotting
+%                 lBoundPlot = [1, 1, 1];
+%                 if(curMet == SHINOZUKA)
+%                     lBoundPlot = [1, 1, 2];
+%                     %xVec = xVec./2;
+%                     
+%                 elseif(curMet == FFT)
+%                      lBoundPlot = [1, 1, 2];   
+%                 end
+%                 
+%                 xVec = xVec(lBoundPlot(curDim):end);
+%                 yVec = yVec(lBoundPlot(curDim):end);
+%                 %yVec2 = yVec2(lBoundPlot(dim):end);
+%                 
+%                 %if(curMet == FFT && curIndep == true)
+%                 %    yVec(6:end) = yVec(5)*yVec(6:end)/yVec(6);
+%                 %    xVec = xVec(1:end-1);
+%                 %    yVec = yVec(1:end-1);
+%                 %end
+%                 
+%                 if(length(xVec)<1)
+%                     continue
+%                 end
+%                 
+%                 %Normalization
+%                 %xVec = xVec/xVec(1);
+%                 yVec = yVec/yVec(1);
+%                 %yVec2 = yVec2/yVec2(1);
+%                 
+%                 %Ploting
+%                 plot(xVec, yVec, '--^', 'MarkerSize',10, 'LineWidth', lWidth);
+%                 %plot(xVec, yVec2, '-');
+%                 xlabel('Number of processors', 'FontSize', 20);
+%                 ylabel('Normalized Wall Time', 'FontSize', 20)
+%             case 'S'
+%         
+%         end
+% 
+%     end
+%  end
+% 
+% switch testType
+%     case 'W'
+%         legendInfo{end} = 'Reference';
+%         plot(xVec, ones(length(xVec),1), '-', 'MarkerSize',10, 'LineWidth', lWidth);
+%         ylim([0.1 1000])
+%         xlim([1 max(xVec)])
+% end
+% 
+% grid('on')
+% box('on')
+% set(gca,'xscale','log')
+% set(gca,'yscale','log', 'FontSize',15)
+% legend(legendInfo(legendMask),'Location','northwest','FontSize',15)
+% % 
+% % saveas(fig,[testTypeBN, '_', methodBN,'_L'],'epsc');
+% 
+% hold off
