@@ -76,8 +76,11 @@ plot(unitPar1(:).*k1(:),'k', 'LineWidth',lWeightB);
 xlim([0,lL]);
 ylim([-3,3]);
 box on
-set(gca,'xtick',[0, 25, 50, 75, 100, 125], 'fontsize', axisSize);
+%set(gca,'xtick',[0, 25, 50, 75, 100, 125], 'fontsize', axisSize);
 line([rL rL],ylim,'Color','k')
+set(gca,'TickLabelInterpreter', 'tex');
+set(gca,'XTickLabel',{'             -\alpha',' ','              \alpha',''}, 'fontsize', axisSize+2)
+set(gca, 'YTick', []);
 %line([lL lL],ylim,'Color','k')
 %h=legend('$$\sqrt{\Psi_1}$$','$$S1$$', '$$S1_{modif}$$', 'Location', 'southeast');
 %set(h,'interpreter','latex','fontsize',fSize)
@@ -93,7 +96,10 @@ plot(unitPar2.*k2, 'k', 'LineWidth',lWeightB);
 xlim([rL,N+2*rL]);
 ylim([-3,3]);
 box on
-set(gca,'xtick',[25, 50, 75, 100, 125, 150], 'fontsize', axisSize);
+%set(gca,'xtick',[25, 50, 75, 100, 125, 150], 'fontsize', axisSize);
+set(gca,'TickLabelInterpreter', 'tex');
+set(gca,'XTickLabel',{'-\alpha               ',' ','\alpha               ',''}, 'fontsize', axisSize+2)
+set(gca, 'YTick', []);
 %line([rL rL],ylim,'Color','k')
 line([lL lL],ylim,'Color','k')
 %h=legend('$$\sqrt{\Psi_2}$$','$$S2$$', '$$S2_{modif}$$', 'Location', 'southeast');
@@ -109,7 +115,9 @@ hold on
 plot(unitPar1.*k1+unitPar2.*k2,'k', 'LineWidth',lWeightB);
 ylim([-3,3]);
 box on
-set(gca,'xtick',[0, 25, 50, 75, 100, 125, 150], 'fontsize', axisSize);
+%set(gca,'xtick',[0, 25, 50, 75, 100, 125, 150], 'fontsize', axisSize);
+set(gca,'XTickLabel',{'             -\alpha',' ','                \alpha',''}, 'fontsize', axisSize+2)
+set(gca, 'YTick', []);
 line([rL rL],ylim,'Color','k')
 line([lL lL],ylim,'Color','k')
 %h=legend('$$S1_{modif}$$','$$S2_{modif}$$','$$S1_{modif}+S2_{modif}$$', 'Location', 'southeast');
