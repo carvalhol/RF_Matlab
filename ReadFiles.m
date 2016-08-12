@@ -9,6 +9,8 @@ baseFolder = '/Users/carvalhol/Desktop/GITs/RF_Matlab';
 
 %% User Entries
 
+plot_MaxMin = 0;
+
 %methodStr---------------
 %'SHI' for Shinozuka
 %'RAN' for Randomization
@@ -16,27 +18,28 @@ baseFolder = '/Users/carvalhol/Desktop/GITs/RF_Matlab';
 %'FFT', for FFT
 %For all the methods choose -g for global and -l for localization method
 
-testType   = 'WEAK'; %'COMP' for Complexity, 'WEAK' for Weak Scaling, 'STRONG' for Strong Scaling
-methodStr = {'FFT-g','FFT-l'};
+%testType   = 'WEAK'; %'COMP' for Complexity, 'WEAK' for Weak Scaling, 'STRONG' for Strong Scaling
+%methodStr = {'FFT-g','FFT-l'};
 
 %searchFolder = 'NEW_Tests/WEAK_3-l_5-g';
 %searchFolder = 'NEW_Tests/WEAK_7-l_5-g';
 %searchFolder = 'NEW_Tests/WEAK_10_SIDE';
-searchFolder = 'NEW_Tests/WEAK_10_and_7';
-dims       = [3]; %Which dimensions take into account.
+%searchFolder = 'NEW_Tests/WEAK_10_and_7';
+%dims       = [3]; %Which dimensions take into account.
 
 %methodStr = {'FFT-l'};
 
-%testType   = 'COMP'; %'COMP' for Complexity, 'WEAK' for Weak Scaling, 'STRONG' for Strong Scaling
+testType   = 'COMP'; %'COMP' for Complexity, 'WEAK' for Weak Scaling, 'STRONG' for Strong Scaling
 %methodStr = {'FFT-g','FFT-l'};
+methodStr = {'FFT-g','FFT-l'};
 
 % searchFolder = 'NEW_Tests/COMP_2';
 % dims       = [2]; %Which dimensions take into account.
 % searchFolder = 'NEW_Tests/COMP_1_MAC';
 % dims       = [3]; %Which dimensions take into account.
-%searchFolder = 'NEW_Tests/COMP_1_MAC_and_COMP_2';
+searchFolder = 'NEW_Tests/COMP_1_MAC_and_COMP_2';
 %dims       = [2,3]; %Which dimensions take into account.
-
+dims       = [3]; %Which dimensions take into account.
 
 %---------------------------------
 
@@ -301,6 +304,7 @@ for Idim = 1:numel(dims)
         end
         
         %Ploting
+        if(plot_MaxMin == 1)
         grey = [0.4,0.4,0.4];
         polygonX = [xVec; xVec(end:-1:1)];
         polygonY = [yVec_max; yVec_min(end:-1:1)];
@@ -310,6 +314,7 @@ for Idim = 1:numel(dims)
         set(polygon,'facealpha',.35);
         set(get(get(polygon,'Annotation'),'LegendInformation'),...
                'IconDisplayStyle','off'); % Exclude line from legend
+        end
         
         plot(xVec, yVec, thisLine, 'Color', thisColor,'LineWidth', lWidth,...
               'MarkerSize',mSize, 'MarkerEdgeColor','k',...
@@ -338,7 +343,7 @@ for Idim = 1:numel(dims)
         %       'IconDisplayStyle','off'); % Exclude line from legend
         %plot(xVec, yVec, '--^', 'MarkerSize',10, 'LineWidth', lWidth);
         text(xVec,yVec,pointTags,'HorizontalAlignment','center', 'FontSize', 15);
-        xlabel('(L/l_c)^d', 'FontSize', 20);
+        xlabel('$(L/\ell_c)^d$', 'FontSize', 20);
         %xlabel('Number of processors', 'FontSize', 20);
         ylabel('Wall Time [s]', 'FontSize', 20);
     end
