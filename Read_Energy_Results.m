@@ -4,14 +4,14 @@ clc
 
 set(0,'defaulttextinterpreter','latex')
 Legend=cell(0,1);
+Titles=cell(0,1);
 
 baseFolder = '/Users/carvalhol/Desktop/GITs/RF_Matlab/Energy_Results/MOMENT_TEST';
 testType  = {'CTE'};
 sourceType = {'P'};
+countFig = 0;
 
 
-figure(1)
-hold on
 
 for i = 1:numel(testType)
     cd(baseFolder);
@@ -19,6 +19,14 @@ for i = 1:numel(testType)
     list = ls;
     
     for j = 1:numel(sourceType)
+        countFig = countFig + 1;
+        figure(countFig)
+        hold on
+        
+        Title = strcat('Source: ',sourceType{j}, ', Media: ',testType{i});
+        %Titles(end+1) = strcat('Source ',sourceType{j}, ', Media',testType{i});
+        title(Title);
+        
         exp = [sourceType{j},'_(\w+)p'];
         [tokens,matches] = regexp(list,'P_(\w+)p','tokens','match');
         int_tokens = zeros(numel(tokens), 1);
@@ -29,31 +37,35 @@ for i = 1:numel(testType)
         tokens = tokens(I);
         matches = matches(I);
         
-        for k = 1:numel(matches)
+        for k = numel(matches):-1:1
             cd(matches{k});
             
             fid = fopen('En_P.txt','r');
             formatSpec = [' time=   ' '%f' ' P_En=' '%f'];
             Out_P = fscanf(fid,formatSpec,[2 Inf])';
             fclose(fid);
-            Legend(end+1) = strcat('p=',tokens{k},'- P En - Source ',sourceType{j});            
+            Legend(end+1) = strcat('p=',tokens{k},'- P Energy');            
             plot(Out_P(:,1), Out_P(:,2),'LineWidth', 3);                       
-            cd('..');
-        end
+        %    cd('..');
+        %end
         
-        for k = 1:numel(matches)
-            cd(matches{k});        
+        %for k = 1:numel(matches)
+        %    cd(matches{k});        
             fid = fopen('En_S.txt','r');
             formatSpec = [' time=   ' '%f' ' S_En=' '%f'];
             Out_S = fscanf(fid,formatSpec,[2 Inf])';
             fclose(fid);
-            Legend(end+1) = strcat('p=',tokens{k},'- S En - Source ',sourceType{j});            
+            Legend(end+1) = strcat('p=',tokens{k},'- S Energy');            
             plot(Out_S(:,1), Out_S(:,2),'LineWidth', 3);            
             cd('..');
         end
+        
+        set(gca, 'yscale','log', 'FontSize',15)
+        ylabel('Energy(J)', 'FontSize', 25);
+        xlabel('Time(s)', 'FontSize', 25);
+        legend(Legend,'Location','northeast','FontSize',20)
+        
+        hold off
     end
+    
 end
-
-ylabel('Energy', 'FontSize', 20);
-xlabel('Time(s)', 'FontSize', 20);
-legend(Legend,'Location','southeast','FontSize',15)
