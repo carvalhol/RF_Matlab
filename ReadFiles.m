@@ -2,6 +2,10 @@ clc
 clear
 close all
 
+%%CONSTANTS
+CPU_Time = 1;
+Wall_Time = 2;
+
 %% USER
 %baseFolder = '/home/lcp/Desktop/RF_Matlab';
 %baseFolder = '/mssmat2/home/paludo/Desktop/RF_Matlab';
@@ -10,6 +14,7 @@ baseFolder = '/Users/carvalhol/Desktop/GITs/RF_Matlab';
 %% User Entries
 
 plot_MaxMin = 0;
+time_Type = CPU_Time;
 
 %methodStr---------------
 %'SHI' for Shinozuka
@@ -31,16 +36,19 @@ plot_MaxMin = 0;
 
 testType   = 'COMP'; %'COMP' for Complexity, 'WEAK' for Weak Scaling, 'STRONG' for Strong Scaling
 %methodStr = {'FFT-g','FFT-l'};
-methodStr = {'FFT-g','FFT-l'};
+methodStr = {'FFT-g'};
 
+%searchFolder = 'NEW_Tests/COMP_1_MAC_and_COMP_2';
 % searchFolder = 'NEW_Tests/COMP_2';
 % dims       = [2]; %Which dimensions take into account.
 % searchFolder = 'NEW_Tests/COMP_1_MAC';
 % dims       = [3]; %Which dimensions take into account.
-searchFolder = 'NEW_Tests/COMP_1_MAC_and_COMP_2';
+%searchFolder = 'NEW_Tests/COMP_1_MAC_and_COMP_2';
 %dims       = [2,3]; %Which dimensions take into account.
-dims       = [3]; %Which dimensions take into account.
+%dims       = [3]; %Which dimensions take into account.
 
+searchFolder = 'Complexity_Tests';
+dims       = [3]; %Which dimensions take into account.
 %---------------------------------
 
 %% CONSTANTS AND INITIALIZATION
@@ -53,6 +61,8 @@ resultsFolder = '/results/';
 sizeBTVec = 8;
 nTests = numel(dims)*numel(methodStr);
 Legend=cell(0,1);
+plotCount = 0;
+set(0,'defaulttextinterpreter','latex')
 
 linestyles = cellstr(char('-',':','-.','--','-',':','-.','--','-',':','-',':',...
 '-.','--','-',':','-.','--','-',':','-.'));
@@ -69,14 +79,13 @@ for Idim = 1:numel(dims)
         cd(baseFolder);
         cd(searchFolder);
         
-        cropedPath = strcat('./', ...
-                     testType,'/', ...
-                     num2str(dims(Idim)),'D/', ...
-                     methodStr(Imet));
+        %cropedPath = strcat('./', ...
+        %             testType,'/', ...
+        %             num2str(dims(Idim)),'D/', ...
+        %             methodStr(Imet));
+        %cd(cropedPath{1});
                  
-        Legend(end+1) = strcat(testType,{' '},num2str(dims(Idim)),{'D '},methodStr(Imet));
-                 
-        cd(cropedPath{1});
+        
         folderList = subdir(fileName);
         vecSize = numel(folderList);
 
@@ -164,9 +173,19 @@ for Idim = 1:numel(dims)
         VT = false(vecSize, 1); %valid Tests
         
         labels = (1:vecSize)';
-        time = sum(BT_avg(:,1:4),2); %Only Generation Time
-        %time = sum(BT_avg(:,1:8),2); %Whole Time (includi file writing)
-        %time = gen_WALL_Time;
+        
+        if(time_Type == Wall_Time)
+            ylabel('Wall Time [s]', 'FontSize', 20);
+            time = sum(BT_avg(:,1:4),2); %Only Generation Time
+            %time = sum(BT_avg(:,1:8),2); %Whole Time (includi file writing)
+            %time = gen_WALL_Time;
+        elseif (time_Type == CPU_Time)
+            ylabel('CPU Time [s]', 'FontSize', 20);
+            time = sum(BT_avg(:,1:4),2).*nb_procs; %Only Generation Time
+            %time = sum(BT_avg(:,1:8),2).*nb_procs; %Whole Time (includi file writing)
+            %time = gen_WALL_Time;
+        end
+        
         
         %labels(time <= 0.0) = -1;
         
@@ -258,94 +277,140 @@ for Idim = 1:numel(dims)
         xRange = prod((xMaxGlob(testMask,:) - xMinGlob(testMask,:))./corrL(testMask,:),2);
         nb_procs = nb_procs(testMask);
         
-        xVec = xRange;
-        yVec = time_avg(testMask);
-        yVec_max = time_max(testMask);
-        yVec_min = time_min(testMask);
         
-        %Ordering
-        [xVec,I]=sort(xVec);
-        yVec = yVec(I);
-        yVec_max = yVec_max(I);
-        yVec_min = yVec_min(I);
-        nb_procs = nb_procs(I);
+        %Separe Number of processors
+        trial_processors = 1;
+        p_label = 1;
+        p_id    = ones(numel(nb_procs),1);
         
-        %Lower Bound For Plotting
-        lBoundPlot = 1;
-        hBoundPlot = numel(yVec);
-        %if(dims(Idim) == 3 && strcmp(methodStr(Imet), 'FFT-l'))
-        if(strcmp(Legend(end), 'WEAK 3D FFT-l'))
-            %lBoundPlot = 2;
-        end
-        if(strcmp(Legend(end), 'WEAK 2D FFT-g'))
-            %hBoundPlot = 8;
-        end
-        
-        xVec = xVec(lBoundPlot:hBoundPlot);
-        yVec = yVec(lBoundPlot:hBoundPlot);
-        yVec_min = yVec_min(lBoundPlot:hBoundPlot);
-        yVec_max = yVec_max(lBoundPlot:hBoundPlot);
-        nb_procs = nb_procs(lBoundPlot:hBoundPlot);
-        
-        if(numel(xVec)<1)
-            continue
-        end
-        
-        %Normalization
-        %yVec = yVec/yVec(1);
-        
-        pointTags = cell(numel(yVec),1);
-        for i = 1:numel(yVec)
-            if(strcmp(methodStr{Imet}(end), 'l'))
-                pointTags{i} = sprintf('\n\n%d', nb_procs(i));
-            else
-                pointTags{i} = sprintf('%d\n\n', nb_procs(i));
+        if (trial_processors)
+            p_label = unique(nb_procs);
+            for i = 1:numel(p_label)
+                p_id(nb_procs==p_label(i))=i;
             end
         end
         
-        %Ploting
-        if(plot_MaxMin == 1)
-        grey = [0.4,0.4,0.4];
-        polygonX = [xVec; xVec(end:-1:1)];
-        polygonY = [yVec_max; yVec_min(end:-1:1)];
-        polygonZ = 0*polygonY -0.1*Imet;
-        %polygon = fill(polygonX, polygonY, grey);
-        polygon =  patch(polygonX, polygonY, polygonZ, grey);
-        set(polygon,'facealpha',.35);
-        set(get(get(polygon,'Annotation'),'LegendInformation'),...
-               'IconDisplayStyle','off'); % Exclude line from legend
+        for i =1:numel(p_label)
+            plotCount = plotCount+1;
+            procMask = testMask(testMask);
+            procMask = (procMask & nb_procs==p_label(i));
+            
+            Legend(end+1) = strcat(testType,{' '},num2str(dims(Idim)),{'D '},methodStr(Imet));
+        
+            %Sort by test type
+            xVec = (xRange).^(1/dims(Idim));
+            yVec = time_avg(testMask);
+            yVec_max = time_max(testMask);
+            yVec_min = time_min(testMask);
+            %Sort by proc Label
+            xVec = xVec(procMask);
+            yVec = yVec(procMask);
+            yVec_max = yVec_max(procMask);
+            yVec_min = yVec_min(procMask);
+
+            %Ordering
+            [xVec,I]=sort(xVec);
+            yVec = yVec(I);
+            yVec_max = yVec_max(I);
+            yVec_min = yVec_min(I);
+            npVec = nb_procs(I);
+
+            %Lower Bound For Plotting
+            lBoundPlot = 1;
+            hBoundPlot = numel(yVec);
+            %if(dims(Idim) == 3 && strcmp(methodStr(Imet), 'FFT-l'))
+            if(strcmp(Legend(end), 'WEAK 3D FFT-l'))
+                if (trial_processors)
+                    Legend{end} = ['P=', num2str(p_label(i))];
+                end
+                %lBoundPlot = 2;
+            end
+            
+            if(strcmp(Legend(end), 'COMP 3D FFT-g'))
+                if (trial_processors)
+                    Legend{end} = ['P=', num2str(p_label(i))];
+                end
+                %lBoundPlot = 2;
+            end
+            
+            if(strcmp(Legend(end), 'WEAK 2D FFT-g'))
+                if (trial_processors)
+                    Legend{end} = ['P=', num2str(p_label(i))];
+                end
+                %hBoundPlot = 8;
+            end
+
+            xVec = xVec(lBoundPlot:hBoundPlot);
+            yVec = yVec(lBoundPlot:hBoundPlot);
+            yVec_min = yVec_min(lBoundPlot:hBoundPlot);
+            yVec_max = yVec_max(lBoundPlot:hBoundPlot);
+            npVec = npVec(lBoundPlot:hBoundPlot);
+
+            if(numel(xVec)<1)
+                continue
+            end
+
+            %Normalization
+            %yVec = yVec/yVec(1);
+
+            pointTags = cell(numel(yVec),1);
+            for i = 1:numel(yVec)
+                if(strcmp(methodStr{Imet}(end), 'l'))
+                    %pointTags{i} = sprintf('\n\n%d', npVec(i));
+                else
+                    %pointTags{i} = sprintf('%d\n\n', npVec(i));
+                end
+            end
+
+            %Ploting
+            if(plot_MaxMin == 1)
+                grey = [0.4,0.4,0.4];
+                polygonX = [xVec; xVec(end:-1:1)];
+                polygonY = [yVec_max; yVec_min(end:-1:1)];
+                polygonZ = 0*polygonY -0.1*Imet;
+                %polygon = fill(polygonX, polygonY, grey);
+                polygon =  patch(polygonX, polygonY, polygonZ, grey);
+                set(polygon,'facealpha',.35);
+                set(get(get(polygon,'Annotation'),'LegendInformation'),...
+                       'IconDisplayStyle','off'); % Exclude line from legend
+            end
+
+            plot(xVec, yVec, thisLine, 'Color', thisColor,'LineWidth', lWidth,...
+                  'MarkerSize',mSize, 'MarkerEdgeColor','k',...
+                  'MarkerFaceColor',thisFill);
+
+            baseText = Legend(end);
+
+
+            %y_max = plot(xVec, yVec_max, thisLine, 'Color', 'r','LineWidth', lWidth-1);
+            %Legend(end+1) = strcat(baseText, ' MAX');
+            %set(get(get(y_max,'Annotation'),'LegendInformation'),...
+            %       'IconDisplayStyle','off'); % Exclude line from legend
+
+            %y_min = plot(xVec, yVec_min, thisLine, 'Color', 'b','LineWidth', lWidth-1);
+            %Legend(end+1) = strcat(baseText, ' MIN');
+            %set(get(get(y_min,'Annotation'),'LegendInformation'),...
+            %       'IconDisplayStyle','off'); % Exclude line from legend
+
+
+
+
+               %markers = scatter(xVec,yVec,mArea, thisMarker,'MarkerEdgeColor',thisMLine,...
+            %      'MarkerFaceColor',thisFill,...
+            %      'LineWidth',1.5);
+            %set(get(get(markers,'Annotation'),'LegendInformation'),...
+            %       'IconDisplayStyle','off'); % Exclude line from legend
+            %plot(xVec, yVec, '--^', 'MarkerSize',10, 'LineWidth', lWidth);
+            text(xVec,yVec,pointTags,'HorizontalAlignment','center', 'FontSize', 15);
         end
         
-        plot(xVec, yVec, thisLine, 'Color', thisColor,'LineWidth', lWidth,...
-              'MarkerSize',mSize, 'MarkerEdgeColor','k',...
-              'MarkerFaceColor',thisFill);
-          
-        baseText = Legend(end);
-                
-          
-        %y_max = plot(xVec, yVec_max, thisLine, 'Color', 'r','LineWidth', lWidth-1);
-        %Legend(end+1) = strcat(baseText, ' MAX');
-        %set(get(get(y_max,'Annotation'),'LegendInformation'),...
-        %       'IconDisplayStyle','off'); % Exclude line from legend
-        
-        %y_min = plot(xVec, yVec_min, thisLine, 'Color', 'b','LineWidth', lWidth-1);
-        %Legend(end+1) = strcat(baseText, ' MIN');
-        %set(get(get(y_min,'Annotation'),'LegendInformation'),...
-        %       'IconDisplayStyle','off'); % Exclude line from legend
-        
-        
-        
-        
-           %markers = scatter(xVec,yVec,mArea, thisMarker,'MarkerEdgeColor',thisMLine,...
-        %      'MarkerFaceColor',thisFill,...
-        %      'LineWidth',1.5);
-        %set(get(get(markers,'Annotation'),'LegendInformation'),...
-        %       'IconDisplayStyle','off'); % Exclude line from legend
-        %plot(xVec, yVec, '--^', 'MarkerSize',10, 'LineWidth', lWidth);
-        text(xVec,yVec,pointTags,'HorizontalAlignment','center', 'FontSize', 15);
-        xlabel('$(L/\ell_c)^d$', 'FontSize', 20);
+        xlabel('$L/\ell_c$', 'FontSize', 20);
         %xlabel('Number of processors', 'FontSize', 20);
-        ylabel('Wall Time [s]', 'FontSize', 20);
+        if(time_Type == Wall_Time)
+            ylabel('Wall Time [s]', 'FontSize', 20);
+        elseif (time_Type == CPU_Time)
+            ylabel('CPU Time [s]', 'FontSize', 20);
+        end
     end
 end
 
@@ -365,24 +430,25 @@ switch testType
     case 'COMP'
         ylim([0.01 yl(2)]);
         yl = ylim; 
-        xRef = linspace(xl(1), xl(2), 100);
         
-        Legend(end+1) = {'O(NLogN)'};  
+        %xRef = xRef.^(1/3);
+        
+        Legend(end+1) = {'O(NLogN)'}; 
+        xRef = linspace(xl(1), xl(2), 100);
         yRef = xRef(:).*log(xRef(:));        
         yRef(:) = (yRef(:)/yRef(1));
-        plot(xRef, yRef, 'k:', 'LineWidth', lWidth2);
+        
+        plot(xRef.^(1/3), yRef, 'k:', 'LineWidth', lWidth2);
 
         Legend(end+1) = {'O(N)'};
-        xRef = linspace(xl(1), xl(2), 100);
         yRef = xRef(:);
         yRef(:) = (yRef(:)/yRef(1));
-        plot(xRef, yRef, 'k--', 'LineWidth', lWidth2);
+        plot(xRef.^(1/3), yRef, 'k--', 'LineWidth', lWidth2);
         
         Legend(end+1) = {'O(N^2)'};
-        xRef = linspace(xl(1), xl(2), 100);
         yRef = (xRef(:)).^2;
         yRef(:) = (yRef(:)/yRef(1));
-        plot(xRef, yRef, 'k-.', 'LineWidth', lWidth2);
+        plot(xRef.^(1/3), yRef, 'k-.', 'LineWidth', lWidth2);
 
 end
 
