@@ -4,7 +4,7 @@ clear all
 
 set(0,'defaulttextinterpreter','latex')
 
-partition_type = 'C'; %T = tri, C = cos
+partition_type = 'T'; %T = tri, C = cos
 
 alpha = 1;
 l_c = 1;

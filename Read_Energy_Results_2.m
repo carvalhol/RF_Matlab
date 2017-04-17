@@ -6,8 +6,7 @@ set(0,'defaulttextinterpreter','latex')
 Legend=cell(0,1);
 Titles=cell(0,1);
 
-%baseFolder = '/Users/carvalhol/Desktop/GITs/RF_Matlab/Energy_Results/MOMENT_TEST';
-baseFolder = '/home/carvalhol/Desktop/traces';
+baseFolder = '/home/carvalhol/Desktop/Energy';
 testType  = {'CTE'};
 sourceType = {'P'};
 countFig = 0;

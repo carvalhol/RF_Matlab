@@ -3,7 +3,7 @@ clear all
 
 set(0,'defaulttextinterpreter','latex')
 
-L = 1000;
+L = 2000;
 partition = ones(L);
 
 ovlp = 300;

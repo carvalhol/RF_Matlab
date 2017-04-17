@@ -105,7 +105,7 @@ plot(t, u(:,1))
 %% Calculating Injected Energy
 
 %Read case information
-cd(base_folder);
+%cd(base_folder);
 %c_folder = './Energy_Results'; %Case folder, has material.input and input.spec
 %info = read_SEM_files(c_folder);
 %vs = info.Vs;
@@ -114,21 +114,20 @@ cd(base_folder);
 %tau = info.tau;
 
 %Making source
-f = 3;
-tau = 0.4;
-source = ricker(t, f, tau);
+%f = 3;
+%tau = 0.4;
+%source = ricker(t, f, tau);
 
 %Plot
-figure (2)
-plot(t, source(:,1))
+%figure (2)
+%plot(t, source(:,1))
 
 du = circshift(u(:,1),1)-u(:,1);
-F  = (circshift(source(:,1),1)+source(:,1))/2;
-
+%F  = (circshift(source(:,1),1)+source(:,1))/2;
 delta_t = t(2)-t(1);
 du_dt = du(1:end-1)/delta_t;
 %energy = trapz(t(1:end-1),source(1:end-1,1).*du_dt(:,1))
-energy_abs = trapz(t(1:end-1),abs(source(1:end-1,1).*du_dt(:,1)));
+%energy_abs = trapz(t(1:end-1),abs(source(1:end-1,1).*du_dt(:,1)));
 
 energy_Fdu = abs(F(1:end-1)'*du(1:end-1));
 
