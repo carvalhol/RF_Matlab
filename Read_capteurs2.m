@@ -3,7 +3,8 @@ clear all
 clc
 clf
 
-base_folder = '/home/carvalhol/Desktop/Energy';
+%base_folder = '/home/carvalhol/Desktop/Energy';
+base_folder = '/Users/carvalhol/Desktop/Energy';
 
 %% Read traces
 cd(base_folder);
@@ -150,15 +151,22 @@ t = E(:,1);
 f = 2;
 tau = 0.5;
 F = zeros(size(u));
-F(:,1) = ricker(t, f, tau); %Ricker on X+
-A = ricker(t, f, tau);
+F(:,1) = -ricker(t, f, tau); %Ricker on X+
 
 En_src=F.*u;
 
 En_src_int = trapz(t,En_src);
 
+element_vol = (0.5)^3;
+dom_vol = (50)^3;
+
 
 %Cumulated Energy ?
+E_cum_src = zeros(numel(t)-1, 1);
+for i=1:numel(E_cum_src)
+    E_cum_src(i) = trapz(t(1:i+1),En_src(1:i+1));
+end
+
 E_cum = zeros(numel(t)-1, 1);
 for i=1:numel(E_cum)
     E_cum(i) = trapz(t(1:i+1),E(1:i+1,6));
@@ -167,15 +175,62 @@ end
 %Plot
 En_labels = {'P-Energy', 'S-Energy', 'Residual Energy', ...
              'Cinetic Energy', 'Total Energy'};
-figure (3)
+
+%Source
+figure (1)
+subplot(2,2,1);
+title('Source (MATLAB)')
+hold on
+plot(t, F(:,1));
+plot(t, F(:,2));
+plot(t, F(:,3));
+legend({'Source x','Source y','Source z'},'FontSize',20)
+set(gca,'fontsize',20)
+hold off
+
+%Displacement
+%figure (2)
+subplot(2,2,2);
+title('Displacement (Simulation)')
+hold on
+plot(t, u(:,1));
+plot(t, u(:,2));
+plot(t, u(:,3));
+legend({'Displacement x','Displacement y','Displacement z'},'FontSize',20)
+set(gca,'fontsize',20)
+hold off
+
+%Energy
+%figure (3)
+subplot(2,2,3);
+title('Energy Source')
+hold on
+plot(t, En_src(:,1));
+plot(t, En_src(:,2));
+plot(t, En_src(:,3));
+plot(t(1:end-1), E_cum_src(:))
+indexmax = find(max(E_cum_src) == E_cum_src);
+%xmax = t(indexmax);
+xmax = 4;
+ymax = E_cum_src(indexmax);
+strmax = ['Maximum = ',num2str(ymax)];
+text(xmax,ymax,strmax,'HorizontalAlignment','right','FontSize',20);
+legend({'Energy x','Energy y','Energy z','Cumulated Energy'},'FontSize',20)
+set(gca,'fontsize',20)
+hold off
+         
+%figure (4)
+subplot(2,2,4);
+title('Energy Media')
 hold on
 %plot(t, E(:,6))
-plot(t, E(:,pos_2));
-plot(t, E(:,pos_3));
-plot(t, E(:,pos_4));
-plot(t, E(:,pos_5));
-plot(t, E(:,pos_6));
-legend(En_labels)
+plot(t, E(:,pos_2)*element_vol);
+plot(t, E(:,pos_3)*element_vol);
+plot(t, E(:,pos_4)*element_vol);
+plot(t, E(:,pos_5)*element_vol);
+plot(t, E(:,pos_6)*element_vol);
+legend(En_labels,'FontSize',20)
+set(gca,'fontsize',20)
 
 %plot(t, E(:,6))
 %plot(t(1:end-1), E_cum(:))
