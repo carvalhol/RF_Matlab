@@ -2,6 +2,9 @@ clc
 clear
 close all
 
+launch_folder='/Users/carvalhol/Desktop/WEAK';
+cd(launch_folder);
+
 %%CONSTANTS
 CPU_Time = 1;
 Wall_Time = 2;
@@ -19,6 +22,31 @@ paths = {...
 
 nCases = numel(paths);
 res = cell(nCases,1);
+
+f_list_name = '_list.txt';
+f_list_name = [orig_folder,'/',f_list_name];
+
+if(exist(f_list_name,'file')==2)
+    [status, probFile] = system(['tail -n 1 ',f_list_name]);
+    probFile = strtrim(probFile);
+    %probFile = string(probFile);
+    disp(['Last file on list: ', probFile])
+    prompt = 'Delete last folder (Y/n) [n]: ';
+    ans = input(prompt,'s');
+    if isempty(ans)
+        ans = 'n';
+    end
+    if(strcmp(ans,'Y'))
+        if(exist(probFile,'file')==2)
+            delete(probFile)
+        else
+           disp('File does not exist') 
+        end
+    end
+    delete(f_list_name)
+end
+
+fileID = fopen(f_list_name,'w');
 
 for p = 1:nCases
     
@@ -55,6 +83,7 @@ for p = 1:nCases
         for f = 1:nSamples
             
             f_name = files(f).name;
+            fprintf(fileID,[folder,'/',f_name,'\n']);
             times(:,:,f) = h5read(f_name, '/times');
         end
         
@@ -66,6 +95,8 @@ for p = 1:nCases
     end
     
 end
+
+fclose(fileID);
 
 %% Plot
 
@@ -82,11 +113,11 @@ for p = 1:nCases
         L = (res{p}.iter{it}.xMaxGlob - res{p}.iter{it}.xMinGlob)...
                  ./res{p}.iter{it}.corrL;
         x(it) = L(1);
-        y1(it) = sum(res{p}.iter{it}.times_avg(1:7));
+        y1(it) = sum(res{p}.iter{it}.times_avg(1:8));
         %y2(it) = sum(res{p}.iter{it}.times_min(1:7));
         %y3(it) = sum(res{p}.iter{it}.times_max(1:7));
-        y2(it) = y1(it) + sum(res{p}.iter{it}.times_std(1:7));
-        y3(it) = y1(it) - sum(res{p}.iter{it}.times_std(1:7));
+        y2(it) = y1(it) + sum(res{p}.iter{it}.times_std(1:8));
+        y3(it) = y1(it) - sum(res{p}.iter{it}.times_std(1:8));
     end
 
 end
