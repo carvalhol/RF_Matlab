@@ -2,7 +2,8 @@ clc
 clear
 close all
 
-launch_folder='/Users/carvalhol/Desktop/WEAK';
+%launch_folder='/Users/carvalhol/Desktop/WEAK';
+launch_folder='/home/carvalhol/Desktop/WEAK';
 cd(launch_folder);
 
 %%CONSTANTS
@@ -12,11 +13,14 @@ fileName = 'INFO-Sample_1.h5';
 
 %% USER
 orig_folder = pwd;
+%paths = {...
+%    '/Users/carvalhol/Desktop/WEAK/3D/FFT-l'...
+%}; %Path till iterations subfolders
 paths = {...
-    '/Users/carvalhol/Desktop/WEAK/3D/FFT-l'...
+    '/home/carvalhol/Desktop/WEAK/3D/FFT-l'...
 }; %Path till iterations subfolders
 
-
+cleaning=false;
 
 %% PROCESSING
 
@@ -26,7 +30,7 @@ res = cell(nCases,1);
 f_list_name = '_list.txt';
 f_list_name = [orig_folder,'/',f_list_name];
 
-if(exist(f_list_name,'file')==2)
+if(exist(f_list_name,'file')==2 && cleaning)
     [status, probFile] = system(['tail -n 1 ',f_list_name]);
     probFile = strtrim(probFile);
     %probFile = string(probFile);
@@ -91,6 +95,9 @@ for p = 1:nCases
         res{p}.iter{it}.times_min = min(min(times,[],3),[],2);
         res{p}.iter{it}.times_avg = mean(mean(times,3),2);
         res{p}.iter{it}.times_std = mean(std(times,1,2),3);
+        %times_tmp = times(9,:,:); %Wall time
+        times_tmp = sum(times(1:8,:,:),1);
+        res{p}.iter{it}.times_total = times_tmp(:);
         
     end
     
@@ -101,42 +108,54 @@ fclose(fileID);
 %% Plot
 
 figure(1)
+hold all
 for p = 1:nCases
     
     nIter = numel(res{p}.iter);
-    x  = zeros(nIter, 1);
-    y1 = zeros(nIter, 1);
-    y2 = zeros(nIter, 1);
-    y3 = zeros(nIter, 1);
+    %x  = zeros(nIter, 1);
+    %y1 = zeros(nIter, 1);
+    %y2 = zeros(nIter, 1);
+    %y3 = zeros(nIter, 1);
+    
+    grp = [];
+    y=[];
     
     for it = 1:nIter
         L = (res{p}.iter{it}.xMaxGlob - res{p}.iter{it}.xMinGlob)...
                  ./res{p}.iter{it}.corrL;
-        x(it) = L(1);
-        y1(it) = sum(res{p}.iter{it}.times_avg(1:8));
+        x = L(1);
+        %y1(it) = sum(res{p}.iter{it}.times_avg(1:8));
+        y = [y,res{p}.iter{it}.times_total'];
+        grp = [grp, x*ones(1,numel(res{p}.iter{it}.times_total))];
+        %boxplot(y,x)
         %y2(it) = sum(res{p}.iter{it}.times_min(1:7));
         %y3(it) = sum(res{p}.iter{it}.times_max(1:7));
-        y2(it) = y1(it) + sum(res{p}.iter{it}.times_std(1:8));
-        y3(it) = y1(it) - sum(res{p}.iter{it}.times_std(1:8));
+        %y2(it) = y1(it) + sum(res{p}.iter{it}.times_std(1:8));
+        %y3(it) = y1(it) - sum(res{p}.iter{it}.times_std(1:8));
     end
 
 end
 
-plot(x,y1)
+hand = boxplot(y,grp,'Notch','on','Widths',0.5)
+set(hand(7,:),'Visible','off') 
 
-plot_MaxMin = 1;
+hold off
 
-if(plot_MaxMin == 1)
-    grey = [0.4,0.4,0.4];
-    polygonX = [x; x(end:-1:1)];
-    polygonY = [y2; y3(end:-1:1)];
-    polygonZ = 0.0*polygonX -0.1;
-    %polygon = fill(polygonX, polygonY, grey);
-    polygon =  patch(polygonX, polygonY, polygonZ, grey);
-    set(polygon,'facealpha',.35);
-    set(get(get(polygon,'Annotation'),'LegendInformation'),...
-           'IconDisplayStyle','off'); % Exclude line from legend
-end
+% plot(x,y1)
+% 
+% plot_MaxMin = 1;
+% 
+% if(plot_MaxMin == 1)
+%     grey = [0.4,0.4,0.4];
+%     polygonX = [x; x(end:-1:1)];
+%     polygonY = [y2; y3(end:-1:1)];
+%     polygonZ = 0.0*polygonX -0.1;
+%     %polygon = fill(polygonX, polygonY, grey);
+%     polygon =  patch(polygonX, polygonY, polygonZ, grey);
+%     set(polygon,'facealpha',.35);
+%     set(get(get(polygon,'Annotation'),'LegendInformation'),...
+%            'IconDisplayStyle','off'); % Exclude line from legend
+% end
 
 
 % %% CONSTANTS AND INITIALIZATION
