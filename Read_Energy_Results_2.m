@@ -6,8 +6,8 @@ set(0,'defaulttextinterpreter','latex')
 Legend=cell(0,1);
 Titles=cell(0,1);
 
-%baseFolder = '/home/carvalhol/Desktop/Energy';
-baseFolder = '/Users/carvalhol/Desktop/Energy';
+baseFolder = '/home/carvalhol/Desktop/Energy';
+%baseFolder = '/Users/carvalhol/Desktop/Energy';
 testType  = {'CTE'};
 sourceType = {'P'};
 countFig = 0;

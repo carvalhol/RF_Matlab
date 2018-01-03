@@ -2,25 +2,25 @@ clc
 clear
 close all
 
-%launch_folder='/Users/carvalhol/Desktop/WEAK';
-launch_folder='/home/carvalhol/Desktop/WEAK';
+cleaning=false;
+launch_folder='/Users/carvalhol/Desktop/WEAK';
+%launch_folder='/home/carvalhol/Desktop/WEAK';
 cd(launch_folder);
 
 %%CONSTANTS
-CPU_Time = 1;
-Wall_Time = 2;
 fileName = 'INFO-Sample_1.h5';
+f_res_name = 'WEAK_data.mat';
 
 %% USER
 orig_folder = pwd;
-%paths = {...
-%    '/Users/carvalhol/Desktop/WEAK/3D/FFT-l'...
-%}; %Path till iterations subfolders
 paths = {...
-    '/home/carvalhol/Desktop/WEAK/3D/FFT-l'...
+    '/Users/carvalhol/Desktop/WEAK/3D/FFT-l'...
 }; %Path till iterations subfolders
+%paths = {...
+%    '/home/carvalhol/Desktop/WEAK/3D/FFT-l'...
+%}; %Path till iterations subfolders
 
-cleaning=false;
+
 
 %% PROCESSING
 
@@ -50,96 +50,151 @@ if(exist(f_list_name,'file')==2 && cleaning)
     delete(f_list_name)
 end
 
-fileID = fopen(f_list_name,'w');
+f_res_path = [orig_folder,'/',f_res_name];
+if~(exist(f_res_path,'file')==2)
 
-for p = 1:nCases
-    
-    cd(orig_folder);
-    cd(paths{p});
-    foundFiles = subdir(fileName);
-    nIter=numel(foundFiles);
-    
-    %Things to read just once inside the path
-    f_name = foundFiles(1).name;
-    res{p}.time_labels = h5read(f_name, '/time_labels');
-    
-    res{p}.iter = cell(nIter,1);
-    
-    for it = 1:nIter
-        [folder,file,ext] = fileparts(foundFiles(it).name);
-        cd(folder);
-        files = dir('INFO-*.h5');
-        nSamples=numel(files);
-        
-        %Read just once inside each iteration
-        f_name = files(1).name;
-        res{p}.iter{it}.nb_procs = h5readatt(f_name,'/','nb_procs');
-        res{p}.iter{it}.corrL = h5readatt(f_name,'/','corrL');
-        res{p}.iter{it}.xMaxGlob = h5readatt(f_name,'/','xMaxGlob');
-        res{p}.iter{it}.xMinGlob = h5readatt(f_name,'/','xMinGlob');
-        res{p}.iter{it}.overlap = h5readatt(f_name,'/','overlap');
-        res{p}.iter{it}.nFields = h5readatt(f_name,'/','nFields');
-        
-        times = zeros(numel(res{p}.time_labels),...
-                      res{p}.iter{it}.nb_procs,...
-                      numel(files));
+    fileID = fopen(f_list_name,'w');
 
-        for f = 1:nSamples
-            
-            f_name = files(f).name;
-            fprintf(fileID,[folder,'/',f_name,'\n']);
-            times(:,:,f) = h5read(f_name, '/times');
+    for p = 1:nCases
+
+        cd(orig_folder);
+        cd(paths{p});
+        foundFiles = subdir(fileName);
+        nIter=numel(foundFiles);
+
+        %Things to read just once inside the path
+        f_name = foundFiles(1).name;
+        res{p}.time_labels = h5read(f_name, '/time_labels');
+
+        res{p}.iter = cell(nIter,1);
+
+        for it = 1:nIter
+            [folder,file,ext] = fileparts(foundFiles(it).name);
+            cd(folder);
+            files = dir('INFO-*.h5');
+            nSamples=numel(files);
+
+            %Read just once inside each iteration
+            f_name = files(1).name;
+            res{p}.iter{it}.nb_procs = h5readatt(f_name,'/','nb_procs');
+            res{p}.iter{it}.corrL = h5readatt(f_name,'/','corrL');
+            res{p}.iter{it}.xMaxGlob = h5readatt(f_name,'/','xMaxGlob');
+            res{p}.iter{it}.xMinGlob = h5readatt(f_name,'/','xMinGlob');
+            res{p}.iter{it}.overlap = h5readatt(f_name,'/','overlap');
+            res{p}.iter{it}.nFields = h5readatt(f_name,'/','nFields');
+            res{p}.iter{it}.L = h5readatt(f_name,'/','L');
+            res{p}.iter{it}.Np = h5readatt(f_name,'/','Np');
+            res{p}.iter{it}.Np_ovlp = h5readatt(f_name,'/','Np_ovlp');
+
+            times = zeros(numel(res{p}.time_labels),...
+                          res{p}.iter{it}.nb_procs,...
+                          numel(files));
+
+            for f = 1:nSamples
+
+                f_name = files(f).name;
+                fprintf(fileID,[folder,'/',f_name,'\n']);
+                times(:,:,f) = h5read(f_name, '/times');
+            end
+
+            res{p}.iter{it}.times_max = max(max(times,[],3),[],2);
+            res{p}.iter{it}.times_min = min(min(times,[],3),[],2);
+            res{p}.iter{it}.times_avg = mean(mean(times,3),2);
+            res{p}.iter{it}.times_std = mean(std(times,1,2),3);
+            %times_tmp = times(9,:,:); %Wall time
+            times_tmp = sum(times(1:8,:,:),1);
+            times_tmp = sum(times_tmp,2);
+            res{p}.iter{it}.times_plot = times_tmp(:);
+
         end
-        
-        res{p}.iter{it}.times_max = max(max(times,[],3),[],2);
-        res{p}.iter{it}.times_min = min(min(times,[],3),[],2);
-        res{p}.iter{it}.times_avg = mean(mean(times,3),2);
-        res{p}.iter{it}.times_std = mean(std(times,1,2),3);
-        %times_tmp = times(9,:,:); %Wall time
-        times_tmp = sum(times(1:8,:,:),1);
-        res{p}.iter{it}.times_total = times_tmp(:);
-        
-    end
-    
-end
 
-fclose(fileID);
+    end
+    save(f_res_path,'res')
+    fclose(fileID);
+else
+    load(f_res_path)
+end
 
 %% Plot
 
 figure(1)
-hold all
 for p = 1:nCases
     
     nIter = numel(res{p}.iter);
-    %x  = zeros(nIter, 1);
+    x  = zeros(nIter, 1);
     %y1 = zeros(nIter, 1);
     %y2 = zeros(nIter, 1);
     %y3 = zeros(nIter, 1);
     
     grp = [];
     y=[];
+    labels = cell(1,nIter);
     
     for it = 1:nIter
-        L = (res{p}.iter{it}.xMaxGlob - res{p}.iter{it}.xMinGlob)...
+        dx_lc = (res{p}.iter{it}.xMaxGlob - res{p}.iter{it}.xMinGlob)...
                  ./res{p}.iter{it}.corrL;
-        x = L(1);
+        x(it) = dx_lc(1);
         %y1(it) = sum(res{p}.iter{it}.times_avg(1:8));
-        y = [y,res{p}.iter{it}.times_total'];
-        grp = [grp, x*ones(1,numel(res{p}.iter{it}.times_total))];
+        y = [y,res{p}.iter{it}.times_plot'];
+        grp = [grp, x(it)*ones(1,numel(res{p}.iter{it}.times_plot))];
+        nProcs = res{p}.iter{it}.nb_procs;
         %boxplot(y,x)
         %y2(it) = sum(res{p}.iter{it}.times_min(1:7));
         %y3(it) = sum(res{p}.iter{it}.times_max(1:7));
         %y2(it) = y1(it) + sum(res{p}.iter{it}.times_std(1:8));
         %y3(it) = y1(it) - sum(res{p}.iter{it}.times_std(1:8));
+        
+        labels(it) = [strcat(num2str(x(it)),{'lc '})];
+        %labels(it) = [strcat(num2str(x(it)),{'lc '}); ...
+        %              strcat(num2str(nProcs),{'procs'})];
+        %labels{it} = sprintf('%d lc \n %d procs', x(it),nProcs);
+        %labels{it} = '\begin{tabular}{c} line 1 \\ line 2 \\ line 3\\ line 4\end{tabular}';
     end
 
+    y1 = mean(res{p}.iter{1}.times_plot);
+    x1 = x(1);
+    lin_scaling = y1 + y1*((x-x1)/x1).^3;
 end
 
-hand = boxplot(y,grp,'Notch','on','Widths',0.5)
+%hand = boxplot(y,grp,'Notch','on','Widths',0.5,...
+%               'Labels',labels);
+A={'1 2','2','3','4','5','6','7','8'};
+hand = boxplot(y,grp,'Notch','on','Widths',0.5,'Labels',labels);
+%set(gca,'xtick', 5, 'XTickLabel', labels, 'TickLabelInterpreter', 'latex')
 set(hand(7,:),'Visible','off') 
-
+hold on
+plot(1:nIter,lin_scaling')
 hold off
+
+grid('on')
+box('on')
+%set(gca,'xscale','log')
+set(gca,'yscale','log', 'FontSize',15)
+% % legend(legendInfo(legendMask),'Location','northwest','FontSize',15)
+
+%plot(x,lin_scaling);
+%hold on
+%hold off
+
+%% TOCO
+
+%data = rand(100,3);
+%data = data(:);
+%group = [1*ones(1,100),2*ones(1,100),3*ones(1,100)]';
+%boxplot(data,group)
+%boxplot(y,grp)
+%hold on
+%plot(1:3,[1,1,1])
+%plot(1:nIter,lin_scaling')
+%line(1:3,[1,1,1])
+
+% % grid('on')
+% % box('on')
+% % set(gca,'xscale','log')
+% % set(gca,'yscale','log', 'FontSize',15)
+% % legend(legendInfo(legendMask),'Location','northwest','FontSize',15)
+% % % 
+% % % saveas(fig,[testTypeBN, '_', methodBN,'_L'],'epsc');
 
 % plot(x,y1)
 % 
